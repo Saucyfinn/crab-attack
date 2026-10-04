@@ -3,15 +3,15 @@
 //   baseline: optional older build to compare bot survival against, e.g.
 //   git show <rev>:index.html > /tmp/old.html && node tests/game.test.js index.html /tmp/old.html
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
-function load(file){
+function load(file,store={}){
   const html=fs.readFileSync(file,'utf8'),src=html.match(/<script>([\s\S]*)<\/script>/)[1];
-  const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
+  const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
   const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
-  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:()=>null,setItem(){}},addEventListener(){},requestAnimationFrame(){},Math:Object.create(Math),console};
+  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(){},requestAnimationFrame(){},Math:Object.create(Math),console};
   vm.createContext(sandbox);vm.runInContext(src,sandbox);
   const run=code=>vm.runInContext(code,sandbox);
-  return {run,sandbox,ctxCalls,els};
+  return {run,sandbox,ctxCalls,els,store};
 }
 const NEW=process.argv[2]||path.join(__dirname,'..','index.html'),OLD=process.argv[3];
 let pass=0;const ok=(c,m)=>{assert.ok(c,m);pass++;console.log('  ✓',m)};
@@ -65,6 +65,46 @@ ok(!/bullet|projectile|shoot\(/i.test(fs.readFileSync(NEW,'utf8')),'no shooting 
 r('round=1;health=3;begin();for(let i=0;i<4000&&state==="playing";i++){for(const c of crabs)c.away=true;update(1/30)}');
 ok(r('state')==='between','a cleared round moves to the build screen');
 ok(/Next up: Incoming tide/.test(G.els['#description'].textContent),'build screen previews the next round');
+
+// golf-style swing gesture, using real touch paths through the classifier
+console.log('Swing & release');
+const line=(pts,ms=12)=>JSON.stringify(pts.map(([x,y],i)=>({x,y,t:i*ms})));
+const stroke=(from,to,n=8)=>[...Array(n+1)].map((_,i)=>[from[0]+(to[0]-from[0])*i/n,from[1]+(to[1]-from[1])*i/n]);
+const swing=(back,fwd)=>[...stroke([200,500],[200,500+back]),...stroke([200,500+back],[200,500+back-fwd]).slice(1)];
+let k=r(`classify(${line(swing(80,200))})`);ok(k.type==='whip'&&!k.perfect,'drag back 80 then swing forward → whip');
+const shortReach=k.reach;k=r(`classify(${line(swing(170,260))})`);ok(k.type==='whip'&&k.perfect&&k.reach>shortReach,'a full backswing is a Perfect swing with longer reach');
+ok(r(`classify(${line(stroke([60,400],[360,400]),6)}).type`)==='sweep','a fast straight flick is now a plain sweep');
+ok(r(`classify(${line(swing(25,200))}).type`)==='sweep','a tiny backswing does not count as a swing');
+ok(r(`classify(${line([...Array(25)].map((_,i)=>[200+70*Math.cos(i/24*2*Math.PI),400+70*Math.sin(i/24*2*Math.PI)]))}).type`)==='spin','circles still spin');
+ok(r(`classify(${line([[200,400],[203,401],[201,399]],400)}).type`)==='power','hold and release still power-snaps');
+r("round=3;begin();crabs=[];spawn(0,'shell');Object.assign(crabs[0],{x:200,y:330,bx:200})");
+r(`perform(classify(${line(swing(170,120))}))`);ok(r('crabs[0].away')&&/Perfect swing/.test(r('feedback')),'swinging up through the beach clears a shell crab beyond your finger');
+r("round=1;begin();gesture={id:1,points:"+line(stroke([200,500],[200,620]))+",began:0};draw()");ok(true,'live backswing meter draws without errors');
+
+// retry, near-miss, stars, hit-pause, sound
+console.log('Replay features');
+const R=load(NEW),q=R.run;
+q('round=4;score=500;health=3;begin();spawnHorde();score=640;health=1;crabs[0].y=700;update(.01)');
+ok(q('state')==='lost','losing the last heart ends the round');
+const lost=R.els['#description'].textContent;ok(/crabs? left in Crab parade/.test(lost),`loss screen says how close you got ("${lost.split('\n')[0]}")`);
+ok(R.els['#action'].textContent==='Retry round 4'&&R.els['#alt'].hidden===false,'loss offers Retry round 4 plus Start over');
+q("$('#action').onclick()");ok(q('state==="playing"&&round===4&&score===500&&health===3'),'retry replays the same round from its starting score');
+q("$('#alt').onclick()");ok(q('round===1&&score===0'),'Start over returns to round 1');
+const clearWith=(hp,combo)=>{q(`health=3;begin();health=${hp};bestChain=${combo};surge=hordePlan().surges;crabs=[];update(.01)`);return R.els['#icon'].textContent};
+q('round=2;castle=2');ok(clearWith(2,1)==='★☆☆','clearing with a heart lost and no big combo earns 1 star');
+q('round=2');ok(clearWith(3,1)==='★★☆','no hearts lost earns a second star');
+q('round=2');ok(clearWith(3,4)==='★★★','a ×4 combo earns the third star');
+q('round=2');clearWith(2,1);ok(JSON.parse(R.store.crabAttackStars)[1]===3,'best stars per round are kept, not overwritten by a worse run');
+ok(/3 \/ 24 ★|\d+ \/ 24 ★/.test(R.els['#note'].textContent),'build screen shows the star total');
+q("round=3;begin();crabs=[];['sweep','snap','sweep','snap'].forEach((t,i)=>{spawn(0,'crab');Object.assign(crabs.at(-1),{x:200,y:400});clock+=.5;perform({type:t,x:200,y:400,radius:t==='snap'?43:undefined,points:[{x:140,y:400},{x:260,y:400}]})})");
+ok(q('bestChain')===4&&/combo star/.test(q('feedback')),'alternating tricks reach a ×4 combo and announce the star');
+q("round=5;begin();crabs=[];spawn(0,'king');Object.assign(crabs[0],{x:200,y:400});powerCooldown=0;perform({type:'spin',x:200,y:400,radius:125,points:[{x:200,y:400}]})");
+ok(q('freeze>0&&shake>0'),'clearing a king triggers hit-pause and screen shake');
+q("begin();crabs=[];spawn(0,'crab');Object.assign(crabs[0],{x:200,y:400});perform({type:'snap',x:200,y:400,radius:43,points:[{x:200,y:400}]})");
+ok(q('freeze===0'),'a single small hit does not pause the game');
+ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support');
+q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
+const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 24 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
 // ---------- difficulty curve via a bot ----------
 // Every 0.6–0.85 s the bot aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
