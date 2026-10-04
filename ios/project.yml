@@ -1,0 +1,29 @@
+# Regenerate the Xcode project after editing this file: cd ios && xcodegen
+name: CrabAttack
+options:
+  bundleIdPrefix: com.saucyfinn
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  CrabAttack:
+    type: application
+    platform: iOS
+    sources:
+      - CrabAttack
+      # The web game itself, bundled straight from the repo root so the app never runs a stale copy.
+      - path: ../index.html
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.saucyfinn.CrabAttack
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Crab Attack
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIStatusBarHidden: YES

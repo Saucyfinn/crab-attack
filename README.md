@@ -4,11 +4,19 @@ A small phone-friendly beach game. Use touch gestures to shoo crabs away with a 
 
 ## Play
 
-Open `index.html` in a browser. Tap **Let's play**, then swipe or flick across approaching crabs. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear eight rounds to win.
+Open `index.html` in a browser. Tap **Let's play**, then swipe across approaching crabs, or swing your towel like a golf club. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear eight rounds to win.
 
 Wet sand makes crabs move twice as fast. Later rounds bring bigger hordes, jumpy crabs and armoured crabs that need stronger towel tricks. Use the pause button to take a break; switching apps also pauses the game.
 
 No installation, dependencies, or build step required. For a local server, run `python3 -m http.server 8000` and visit http://localhost:8000. On a phone, host this file with an HTTPS static web host or use a reachable local-network server.
+
+## iOS app
+
+Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhone, and press Run. The app shows the game full-screen in a web view and bundles the repo's `index.html` directly, so changes to the game appear on the next build. To run on a physical iPhone, choose your team under **Signing & Capabilities**. The project is generated from `ios/project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); run `xcodegen` in `ios/` after editing that file.
+
+## Android app
+
+Open the `android/` folder in Android Studio and press Run. Like the iOS app, it shows the game full-screen in a WebView and bundles the repo's `index.html` at build time. From the command line: `cd android && ./gradlew assembleDebug` builds `app/build/outputs/apk/debug/app-debug.apk` (Java 17+ is required; Android Studio's bundled runtime works). Minimum Android version is 8.0.
 
 ## Development
 
@@ -23,17 +31,25 @@ git show <rev>:index.html > /tmp/old.html
 node tests/game.test.js index.html /tmp/old.html
 ```
 
+## Stars, retries and sound
+
+Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and the total out of 24 shows on the start and build screens.
+
+If the crabs take your castle, the game says how many crabs were left. **Retry round** replays that round from the score you started it with. **Start over** returns to round 1.
+
+Sound effects are generated in the browser with Web Audio, so there are no audio files. Use the 🔊 button to mute; the setting is remembered. On iPhone, the ring/silent switch also silences the game. Clearing a king crab, or five or more crabs with one trick, briefly freezes the action and shakes the screen.
+
 ## Towel tricks
 
 - **Tap — Snap:** shoo one nearby crab.
 - **Swipe — Sweep:** catch multiple crabs along your swipe.
-- **Fast flick — Whip:** extends 110 game units beyond your finger for extra reach.
+- **Swing and release — Whip:** like a golf swing. Drag back to wind up while a power bar fills and a dashed line previews the reach, then swing forward and let go. The towel cracks in the direction of the forward swing, reaching 70–200 game units beyond your finger depending on the backswing. A full backswing is a **Perfect swing** that hits a wider strip. A plain fast flick is now an ordinary sweep.
 - **Draw a circle — Spin:** clears crabs within a 125-unit radius. Works clockwise or counterclockwise.
 - **Hold and release — Power snap:** hold still for 0.55 seconds, then release for a 110-unit area snap. The ring shows when it is ready.
 
-Spin and power snap share a two-second recharge. Successful different tricks within two seconds build a combo, awarding up to 15 bonus points. Basic snaps, swipes, and flicks have no cooldown. The optional **?** guide pauses gameplay. Interrupted gestures are cancelled; additional fingers are ignored during a gesture.
+Spin and power snap share a two-second recharge. Successful different tricks within two seconds build a combo, awarding up to 15 bonus points. Snaps, sweeps and swings have no cooldown. The optional **?** guide pauses gameplay. Interrupted gestures are cancelled; additional fingers are ignored during a gesture.
 
-This repository is a touch-browser prototype designed for iPhone. It is not yet a signed native iOS app or an App Store release. Gesture logic is tested with simulated touch paths; physical iPhone testing is still needed.
+This repository is a touch-browser prototype designed for iPhone. `ios/` wraps it in a small SwiftUI app (see **iOS app** below); it is not yet an App Store release. Gesture logic is tested with simulated touch paths; physical iPhone testing is still needed.
 
 ## Crab hordes
 
