@@ -14,6 +14,15 @@ No installation, dependencies, or build step required. For a local server, run `
 
 All styles, logic, and canvas artwork are in `index.html`. The game adapts to portrait phone screens and also supports mouse input. Best score is stored in the browser.
 
+### Tests
+
+Run `node tests/game.test.js` (Node 18+, no dependencies). It loads the game script with a stubbed browser and checks horde escalation, tough-crab armour, knockback, wet-sand speed, jumpy movement, rendering and round flow. It then plays every round with seeded casual and skilled bots and prints survival rates. To compare difficulty against an older build, pass it as a baseline:
+
+```sh
+git show <rev>:index.html > /tmp/old.html
+node tests/game.test.js index.html /tmp/old.html
+```
+
 ## Towel tricks
 
 - **Tap — Snap:** shoo one nearby crab.
