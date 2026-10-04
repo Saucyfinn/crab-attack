@@ -1,10 +1,10 @@
 # Crab Attack
 
-A small phone-friendly beach game. Tap crabs to shoo them away with a towel and protect your sandcastle. No shooting, inventory, or complicated controls.
+A small phone-friendly beach game. Use touch gestures to shoo crabs away with a towel and protect your sandcastle. No shooting, inventory, or complicated controls.
 
 ## Play
 
-Open `index.html` in a browser. Tap **Let's play**, then tap approaching crabs. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear eight rounds to win.
+Open `index.html` in a browser. Tap **Let's play**, then swipe or flick across approaching crabs. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear eight rounds to win.
 
 Wet sand makes crabs move twice as fast. Later rounds change their movement patterns. Use the pause button to take a break; switching apps also pauses the game.
 
@@ -13,3 +13,15 @@ No installation, dependencies, or build step required. For a local server, run `
 ## Development
 
 All styles, logic, and canvas artwork are in `index.html`. The game adapts to portrait phone screens and also supports mouse input. Best score is stored in the browser.
+
+## Towel tricks
+
+- **Tap — Snap:** shoo one nearby crab.
+- **Swipe — Sweep:** catch multiple crabs along your swipe.
+- **Fast flick — Whip:** extends 110 game units beyond your finger for extra reach.
+- **Draw a circle — Spin:** clears crabs within a 110-unit radius. Works clockwise or counterclockwise.
+- **Hold and release — Power snap:** hold still for 0.55 seconds, then release for a 95-unit area snap. The ring shows when it is ready.
+
+Spin and power snap share a two-second recharge. Successful different tricks within two seconds build a combo, awarding up to 15 bonus points. Basic snaps, swipes, and flicks have no cooldown. The optional **?** guide pauses gameplay. Interrupted gestures are cancelled; additional fingers are ignored during a gesture.
+
+This repository is a touch-browser prototype designed for iPhone. It is not yet a signed native iOS app or an App Store release. Gesture logic is tested with simulated touch paths; physical iPhone testing is still needed.
