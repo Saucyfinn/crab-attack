@@ -80,6 +80,9 @@ ok(r(`classify(${line([[200,400],[203,401],[201,399]],400)}).type`)==='power','h
 r("round=3;begin();crabs=[];spawn(0,'shell');Object.assign(crabs[0],{x:200,y:330,bx:200})");
 r(`perform(classify(${line(swing(170,120))}))`);ok(r('crabs[0].away')&&/Perfect swing/.test(r('feedback')),'swinging up through the beach clears a shell crab beyond your finger');
 r("round=1;begin();gesture={id:1,points:"+line(stroke([200,500],[200,620]))+",began:0};draw()");ok(true,'live backswing meter draws without errors');
+r('personPose()');ok(r('pose')==='windup'&&r('handPos().y')<r('player.y')-30,'the cowboy raises the towel overhead during the backswing');
+r("gesture=null;swats=[{type:'whip',x:300,y:300,points:[{x:200,y:500},{x:300,y:300}],life:.45,maxLife:.45}];personPose()");ok(r('pose')==='crack'&&r('handPos().x')>r('player.x')+25,'he snaps the towel arm forward when a trick lands');
+r('draw()');r("swats=[];personPose()");ok(r('pose')==='idle','and returns to idle with the towel hanging');r('draw()');
 
 // retry, near-miss, stars, hit-pause, sound
 console.log('Replay features');
