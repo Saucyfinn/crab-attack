@@ -39,9 +39,22 @@ If the crabs take your castle, the game says how many crabs were left. **Retry r
 
 Sound effects are generated in the browser with Web Audio, so there are no audio files. Use the 🔊 button to mute; the setting is remembered. On iPhone, the ring/silent switch also silences the game. Clearing a king crab, or five or more crabs with one trick, briefly freezes the action and shakes the screen.
 
+## Towels
+
+Pick a towel on the start, build and retry screens; your choice is remembered. Each shows its reach, swipe width and how fast spins and power snaps recharge.
+
+| Towel | Reach | Swipe width | Big-trick recharge | Special |
+|---|---|---|---|---|
+| Beach towel | 210 | 46 | 2 s | All-rounder |
+| Pool towel | 270 | 38 | 2 s | Longest reach, narrow swipes |
+| Bath sheet | 185 | 56 | 3 s | Widest swipes |
+| Wet towel | 200 | 44 | 2 s | Snaps and sweeps clear shell crabs in one hit (kings still need a spin or power snap) |
+
+Whips add their usual 70–200 extra reach on top of the towel's. In bot tests every towel clears the late rounds at a similar rate.
+
 ## Towel tricks
 
-- **Drag the cowboy — Move:** press on the cowboy and slide your finger to walk him anywhere on the beach above the castle. Touches anywhere else are towel tricks, so you can steer him with one finger and swipe with another. His towel only reaches crabs within 210 game units of him, shown by a dashed ring while you aim or move him. A whip reaches farther, up to 410 units with a full backswing. A trick aimed at crabs out of reach says *Too far*.
+- **Drag the cowboy — Move:** press on the cowboy and slide your finger to walk him anywhere on the beach above the castle. Touches anywhere else are towel tricks, so you can steer him with one finger and swipe with another. His towel only reaches crabs within its reach of him (210 game units for the beach towel), shown by a dashed ring while you aim or move him. A whip reaches farther, up to 410 units with a full backswing. A trick aimed at crabs out of reach says *Too far*.
 - **Tap — Snap:** shoo one nearby crab.
 - **Swipe — Sweep:** catch multiple crabs along your swipe.
 - **Swing and release — Whip:** like a golf swing. Drag back to wind up while a power bar fills and a dashed line previews the reach, then swing forward and let go. The towel cracks in the direction of the forward swing, reaching 70–200 game units beyond your finger depending on the backswing. A full backswing is a **Perfect swing** that hits a wider strip. A plain fast flick is now an ordinary sweep.

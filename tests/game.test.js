@@ -94,6 +94,21 @@ r('round=1;begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,
 c=r('player.y=380;perform({type:"sweep",x:270,y:250,points:[{x:150,y:250},{x:270,y:250}]});crabs[0]');ok(c.away,'walking closer brings them within reach');
 r('begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,startX:210})');ok(r('perform(classify('+line(swing(170,200))+'));crabs[0].away'),'a full whip reaches crabs that a sweep cannot');
 
+// towels: each trades reach, swipe width, recharge and hitting power
+console.log('Towels');
+ok(r('towels.length')>=4&&r('towel===towels[0]'),'several towels to choose from, the all-rounder by default');
+const far=n=>r(`towel=towels[${n}];round=1;begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:290,bx:210,startX:210});perform({type:"sweep",x:270,y:290,points:[{x:150,y:290},{x:270,y:290}]});crabs[0].away`);
+ok(far(1)&&!far(0),'the pool towel reaches crabs the beach towel cannot');
+const wide=n=>r(`towel=towels[${n}];round=1;begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:400+52,bx:210,startX:210});perform({type:"sweep",x:270,y:400,points:[{x:150,y:400},{x:270,y:400}]});crabs[0].away`);
+ok(wide(2)&&!wide(0),'the bath sheet sweeps a wider strip');
+ok(r('towel=towels[2];powerCooldown=0;perform({type:"spin",x:210,y:400,radius:125,points:[{x:210,y:400}]});powerCooldown')>2.5,'but its spin takes longer to recharge');
+const shellHit=n=>r(`towel=towels[${n}];round=3;begin();crabs=[];spawn(0,"shell");Object.assign(crabs[0],{x:210,y:420,bx:210});perform({type:"sweep",x:270,y:420,points:[{x:150,y:420},{x:270,y:420}]});crabs[0].away`);
+ok(shellHit(3)&&!shellHit(0),'a wet towel sweep clears a shell crab in one hit');
+ok(!r('towel=towels[3];round=5;begin();crabs=[];spawn(0,"king");Object.assign(crabs[0],{x:210,y:420,bx:210});perform({type:"whip",x:270,y:420,points:[{x:150,y:420},{x:270,y:420}]});crabs[0].away'),'kings still need a spin or power snap, even with a wet towel');
+r('towel=towels[0]');
+const T=load(NEW,{crabAttackTowel:'2'});ok(T.run('towel.name')==='Bath sheet'&&/aria-checked="true" data-i="2"/.test(T.els['#towels'].innerHTML),'the chosen towel is remembered and shown as selected');
+T.run('state="paused";show("Beach break","","Keep playing")');ok(T.els['#picker'].hidden===true,'towels cannot be swapped mid-round from the pause screen');
+
 // retry, near-miss, stars, hit-pause, sound
 console.log('Replay features');
 const R=load(NEW),q=R.run;
