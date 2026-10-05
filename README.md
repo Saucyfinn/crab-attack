@@ -20,11 +20,11 @@ Open the `android/` folder in Android Studio and press Run. Like the iOS app, it
 
 ## Development
 
-All styles, logic, and canvas artwork are in `index.html`. The game adapts to portrait phone screens and also supports mouse input. Best score is stored in the browser.
+All styles, logic, and canvas artwork are in `index.html`. The artwork is drawn with smooth vector shapes and gradients (no image files). The game adapts to portrait phone screens and also supports mouse input. Best score is stored in the browser.
 
 ### Tests
 
-Run `node tests/game.test.js` (Node 18+, no dependencies). It loads the game script with a stubbed browser and checks horde escalation, tough-crab armour, knockback, wet-sand speed, jumpy movement, rendering and round flow. It then plays every round with seeded casual and skilled bots and prints survival rates. To compare difficulty against an older build, pass it as a baseline:
+Run `node tests/game.test.js` (Node 18+, no dependencies). It loads the game script with a stubbed browser and checks horde escalation, tough-crab armour, knockback, wet-sand speed, jumpy movement, rendering and round flow. It then plays every round with seeded casual and skilled bots, which walk the cowboy toward the lowest crab while they play, and prints survival rates. To compare difficulty against an older build, pass it as a baseline:
 
 ```sh
 git show <rev>:index.html > /tmp/old.html
@@ -41,6 +41,7 @@ Sound effects are generated in the browser with Web Audio, so there are no audio
 
 ## Towel tricks
 
+- **Drag the cowboy — Move:** press on the cowboy and slide your finger to walk him anywhere on the beach above the castle. Touches anywhere else are towel tricks, so you can steer him with one finger and swipe with another. His towel only reaches crabs within 210 game units of him, shown by a dashed ring while you aim or move him. A whip reaches farther, up to 410 units with a full backswing. A trick aimed at crabs out of reach says *Too far*.
 - **Tap — Snap:** shoo one nearby crab.
 - **Swipe — Sweep:** catch multiple crabs along your swipe.
 - **Swing and release — Whip:** like a golf swing. Drag back to wind up while a power bar fills and a dashed line previews the reach, then swing forward and let go. The towel cracks in the direction of the forward swing, reaching 70–200 game units beyond your finger depending on the backswing. A full backswing is a **Perfect swing** that hits a wider strip. A plain fast flick is now an ordinary sweep.

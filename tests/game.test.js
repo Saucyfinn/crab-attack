@@ -6,7 +6,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('p
 function load(file,store={}){
   const html=fs.readFileSync(file,'utf8'),src=html.match(/<script>([\s\S]*)<\/script>/)[1];
   const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
-  const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++},set:(t,k,v)=>(t[k]=v,true)});
+  const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++;return {addColorStop(){}}},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
   const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(){},requestAnimationFrame(){},Math:Object.create(Math),console};
   vm.createContext(sandbox);vm.runInContext(src,sandbox);
@@ -42,7 +42,7 @@ make('king');for(const t of ['snap','sweep','whip']){r('crabs[0].y=400;crabs[0].
 make('king');ok(hit('spin').away,'spin clears a king crab');
 make('king');ok(hit('power').away,'power snap clears a king crab');
 make('crab');ok(hit('snap').away,'a snap still clears a plain crab');
-r('crabs=[];spawn(0,"king");crabs[0].x=200;crabs[0].y=160;crabs[0].bx=200');c=hit('sweep');
+r('crabs=[];spawn(0,"king");crabs[0].x=200;crabs[0].y=160;crabs[0].bx=200;player.y=260');c=hit('sweep');
 ok(c.y>=150,'knockback never pushes crabs off the beach into the sea');
 
 // wet sand doubles speed
@@ -84,6 +84,16 @@ r('personPose()');ok(r('pose')==='windup'&&r('handPos().y')<r('player.y')-30,'th
 r("gesture=null;swats=[{type:'whip',x:300,y:300,points:[{x:200,y:500},{x:300,y:300}],life:.45,maxLife:.45}];personPose()");ok(r('pose')==='crack'&&r('handPos().x')>r('player.x')+25,'he snaps the towel arm forward when a trick lands');
 r('draw()');r("swats=[];personPose()");ok(r('pose')==='idle','and returns to idle with the towel hanging');r('draw()');
 
+// moving the cowboy: press on him and drag; touches elsewhere stay towel tricks
+console.log('Moving');
+r('round=1;begin()');ok(r('onPlayer({x:player.x+5,y:player.y-20})')&&!r('onPlayer({x:300,y:300})'),'a press on the cowboy grabs him; a press on open sand does not');
+r('drag={id:1,dx:4,dy:-6};movePlayer({x:296,y:306});for(let i=0;i<60;i++)update(1/30)');ok(Math.abs(r('player.x')-300)<1&&Math.abs(r('player.y')-300)<1,'dragging walks him to the finger, keeping the grab offset');
+r('movePlayer({x:-100,y:900})');ok(r('playerTarget.x')===24&&r('playerTarget.y')===600,'he stays on the beach, above the castle line');
+r('drag=null;draw()');
+r('round=1;begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,startX:210})');c=r('perform({type:"sweep",x:270,y:250,points:[{x:150,y:250},{x:270,y:250}]});crabs[0]');ok(!c.away&&/Too far/.test(r('feedback')),'the towel cannot reach crabs far from the cowboy, and says so');
+c=r('player.y=380;perform({type:"sweep",x:270,y:250,points:[{x:150,y:250},{x:270,y:250}]});crabs[0]');ok(c.away,'walking closer brings them within reach');
+r('begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,startX:210})');ok(r('perform(classify('+line(swing(170,200))+'));crabs[0].away'),'a full whip reaches crabs that a sweep cannot');
+
 // retry, near-miss, stars, hit-pause, sound
 console.log('Replay features');
 const R=load(NEW),q=R.run;
@@ -110,15 +120,17 @@ q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].tex
 const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 24 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
 // ---------- difficulty curve via a bot ----------
-// Every 0.6–0.85 s the bot aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
+// The bot keeps walking the cowboy toward the lowest crab (250 units/s, or 450 when skilled). Every 0.6–0.85 s it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
 // charged, whip a shell crab, else a 120-wide sweep. The skilled bot also spins on dense packs. All randomness is seeded.
 function playRound(file,rd,seed,skilled=false){
   const {run}=load(file);let s=seed;const rand=()=>(s=(s*16807)%2147483647)/2147483647;
   run(`Math.random=()=>(globalThis.__s=(globalThis.__s*16807)%2147483647)/2147483647`);run(`globalThis.__s=${seed+1}`);
   run(`round=${rd};health=3;castle=${rd};begin()`);
-  const hasPower=run('typeof trickPower!=="undefined"');
+  const hasPower=run('typeof trickPower!=="undefined"'),canWalk=run('typeof playerTarget!=="undefined"');
   let t=0,next=0;
   while(run('state')==='playing'&&t<240){
+    // keep a thumb on the cowboy: walk him toward the lowest crab at a capped speed
+    if(canWalk)run(`(()=>{const live=crabs.filter(c=>!c.away&&!c.dead&&c.y>150);if(!live.length)return;const lo=live.reduce((a,c)=>c.y>a.y?c:a),tx=lo.x-playerTarget.x,ty=Math.min(600,lo.y+110)-playerTarget.y,d=Math.hypot(tx,ty),k=Math.min(1,${skilled?450:250}/30/(d||1));playerTarget.x+=tx*k;playerTarget.y+=ty*k})()`);
     run('update(1/30)');t+=1/30;
     if(t>=next){next=t+.6+rand()*.25;const ex=(rand()-.5)*50,ey=(rand()-.5)*40;
       run(`(()=>{const live=crabs.filter(c=>!c.away&&!c.dead&&c.y>150);if(!live.length)return;live.sort((a,b)=>b.y-a.y);const lo={...live[0],x:live[0].x+${ex},y:live[0].y+${ey}};
