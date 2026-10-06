@@ -1,7 +1,7 @@
 // Offline support for the installed web app. Files are served from the cache straight away and refreshed from the
 // network in the background, so an update shows up on the next launch. Bump CACHE to drop old caches.
-const CACHE = 'crab-attack-v1';
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
+const CACHE = 'crab-attack-v2';
+const FILES = ['./', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));

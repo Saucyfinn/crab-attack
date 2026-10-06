@@ -18,6 +18,8 @@ On a PC the board keeps its portrait shape, centred on a sea backdrop, and draws
 
 The iOS and Android apps only bundle `index.html`; the web app files are ignored there.
 
+It is hosted on Cloudflare at https://crab-attack.hvrdfbj65m.workers.dev as a static-assets Worker (`wrangler.jsonc`). To publish changes, run `npx wrangler deploy` from the repo root. `.assetsignore` allows only the page, manifest, service worker and icons to be uploaded, so the rest of the repo stays private.
+
 ## iOS app
 
 Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhone, and press Run. The app shows the game full-screen in a web view and bundles the repo's `index.html` directly, so changes to the game appear on the next build. To run on a physical iPhone, choose your team under **Signing & Capabilities**. The project is generated from `ios/project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); run `xcodegen` in `ios/` after editing that file.

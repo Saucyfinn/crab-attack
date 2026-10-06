@@ -1,0 +1,7 @@
+# Upload only the web app; everything else in the repo stays private.
+*
+!index.html
+!manifest.webmanifest
+!sw.js
+!icons/
+!icons/*.png
