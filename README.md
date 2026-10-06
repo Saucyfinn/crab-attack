@@ -10,6 +10,14 @@ Wet sand in round 2 makes crabs move twice as fast, and round 6 is a pop-up roun
 
 No installation, dependencies, or build step required. For a local server, run `python3 -m http.server 8000` and visit http://localhost:8000. On a phone, host this file with an HTTPS static web host or use a reachable local-network server.
 
+## PC web app
+
+The same `index.html` is an installable web app for Windows, macOS and Linux. Serve the folder over HTTP or HTTPS (for example `python3 -m http.server 8000`, then open http://localhost:8000), and in Chrome or Edge use **Install the app** on the start screen or the install icon in the address bar. It then opens in its own window and works offline: `sw.js` caches the page, `manifest.webmanifest` and the icons in `icons/`, and refreshes them in the background so updates appear on the next launch. Change `CACHE` in `sw.js` to drop old caches.
+
+On a PC the board keeps its portrait shape, centred on a sea backdrop, and draws at the screen's real resolution. Play with the mouse: click to snap, drag to sweep, swing and release to whip. Keys: **Space** or **P** pauses, **M** mutes, **H** opens the guide, **Enter** starts. Text says "click" instead of "tap" when a mouse is in use.
+
+The iOS and Android apps only bundle `index.html`; the web app files are ignored there.
+
 ## iOS app
 
 Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhone, and press Run. The app shows the game full-screen in a web view and bundles the repo's `index.html` directly, so changes to the game appear on the next build. To run on a physical iPhone, choose your team under **Signing & Capabilities**. The project is generated from `ios/project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); run `xcodegen` in `ios/` after editing that file.
@@ -58,7 +66,7 @@ He stands guard in front of the castle, seen from behind as he faces the sea, an
 
 ## Prizes
 
-Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a beach umbrella, a boogie board, a windbreak and a picnic hamper. Prizes wait in the tray beside the castle. Drag one onto the open sand to place it; each can be used once per attempt at a round. A crab that walks into a prize stops for a moment before climbing over, and the prize is knocked over after holding up its quota of crabs.
+Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a beach umbrella, a boogie board, a windbreak and a picnic hamper. Before each round starts, a setup step shows the tray of prizes beside the castle: drag prizes onto the open sand, drag placed ones to move them, or drag one off the sand to put it back, then press **Start round**. Prizes stay where you put them from round to round (and on retries) until you move them; **Start over** clears the beach. A crab that walks into a prize stops for a moment before climbing over, and the prize is knocked over after holding up its quota of crabs, coming back fresh next round.
 
 | Prize | Holds each crab | Crabs before it falls |
 |---|---|---|

@@ -95,18 +95,28 @@ r('round=1;begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,
 c=r('crabs[0].y=400;perform({type:"sweep",x:270,y:400,points:[{x:150,y:400},{x:270,y:400}]});crabs[0]');ok(c.away,'once they come closer they are within reach');
 r('begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,startX:210})');ok(r('perform(classify('+line(swing(170,200))+'));crabs[0].away'),'a full whip reaches crabs that a sweep cannot');
 
-// prizes: one per cleared round, placed from the tray to hold crabs up
+// prizes: one per cleared round, placed before the round starts; they stay put from round to round
 console.log('Prizes');
 r('round=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a pair of jandals/.test(G.els['#description'].textContent),'clearing round 1 wins a pair of jandals');
 ok(r("prizes.map(p=>p.name).join()")==='Jandals,Sun lounger,Chilly bin,Beach umbrella,Boogie board,Windbreak,Picnic hamper','then a sun lounger, a chilly bin and more, one per round');
-r('round=4;begin()');ok(r('owned().length')===3&&(G.els['#trayL'].innerHTML.match(/data-p=/g)||[]).length===3,'by round 4 the tray beside the castle holds three prizes');
-ok(!r('placePrize(1,210,640)')&&!r('placePrize(1,210,120)'),'prizes can only go on the open sand, not the castle or the sea');
-ok(r('placePrize(1,210,400)')&&!r('placePrize(1,100,400)')&&/disabled/.test(G.els['#trayL'].innerHTML),'each prize can be placed once per round');
+r("$('#action').onclick()");ok(r('state')==='setup'&&r('round')===2&&G.els['#go'].hidden===false&&G.els['#trayL'].hidden===false,'the next round opens with a setup step to place prizes');
+r('for(let i=0;i<120;i++)update(1/30)');ok(r('crabs.length')===0,'no crabs arrive until the round is started');
+ok(!r('placePrize(0,210,640)')&&!r('placePrize(0,210,120)'),'prizes can only go on the open sand, not the castle or the sea');
+ok(r('placePrize(0,150,420)')&&r('items.length')===1&&/disabled/.test(G.els['#trayL'].innerHTML),'a prize dropped on the sand leaves the tray');
+r('startRound()');ok(r('state')==='playing'&&G.els['#go'].hidden===true&&G.els['#trayL'].hidden===true,'Start round sets the crabs going and tucks the tray away');
+ok(!r('placePrize(0,250,420)'),'prizes cannot be moved mid-round');
+r('round=4;castle=4;begin(true)');ok(r('owned().length')===3&&(G.els['#trayL'].innerHTML.match(/data-p=/g)||[]).length===3,'by round 4 the tray beside the castle holds three prizes');
+ok(r('items.length')===1&&r('items[0].x')===150&&r('items[0].y')===420,'the jandals are still where they were placed');
+ok(r('grabPrize({x:152,y:418},7)')&&r('items.length')===0,'pressing a placed prize picks it up');
+r('dropPrize({pointerId:7,clientX:300,clientY:380,timeStamp:0})');ok(r('layout[0].x')===298&&r('layout[0].y')===382&&r('items[0].x')===298,'and dropping it moves it to the new spot');
+r('placePrize(1,210,400)');r('grabPrize({x:210,y:400},8)');r('dropPrize({pointerId:8,clientX:210,clientY:700,timeStamp:0})');ok(!('1' in r('layout'))&&!/data-p="1" disabled/.test(G.els['#trayL'].innerHTML),'dragging a prize off the sand puts it back in the tray');
+r('placePrize(1,210,400);startRound()');
 r('crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:360,bx:210,startX:210,speed:60,jumpy:false});for(let i=0;i<20;i++)update(1/30)');const held=r('crabs[0].y');
 ok(held<400-17+3&&r('crabs[0].block')>0,`a crab walking into the sun lounger is held up (stopped at y ${held.toFixed(0)})`);
 r('for(let i=0;i<45;i++)update(1/30)');ok(r('crabs[0].y')>held+10,'then climbs over and carries on');
-r('items[0].left=1;crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:360,bx:210,startX:210,speed:60,jumpy:false});for(let i=0;i<20;i++)update(1/30)');ok(r('items.length')===0,'a prize is knocked over after holding up its quota of crabs');
-r('begin()');ok(r('items.length')===0&&r('usedPrizes.size')===0,'all prizes come back for the next attempt');
+r('items.find(o=>o.i===1).left=1;crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:360,bx:210,startX:210,speed:60,jumpy:false});for(let i=0;i<20;i++)update(1/30)');ok(!r('items.some(o=>o.i===1)'),'a prize is knocked over after holding up its quota of crabs');
+r('begin(true)');ok(r('items.length')===2&&r('items.every(o=>o.left===o.uses)'),'knocked-over prizes are back, fresh and in place, for the next attempt');
+r("$('#alt').onclick()");ok(r('round')===1&&r('Object.keys(layout).length')===0&&r('state')==='playing','Start over clears the beach');
 
 // golden towel: three different tricks in a row power it up for a few seconds
 console.log('Golden towel');
@@ -152,7 +162,7 @@ q('round=4;score=500;health=3;begin();spawnHorde();score=640;health=1;crabs[0].y
 ok(q('state')==='lost','losing the last heart ends the round');
 const lost=R.els['#description'].textContent;ok(/crabs? left in Crab parade/.test(lost),`loss screen says how close you got ("${lost.split('\n')[0]}")`);
 ok(R.els['#action'].textContent==='Retry round 4'&&R.els['#alt'].hidden===false,'loss offers Retry round 4 plus Start over');
-q("$('#action').onclick()");ok(q('state==="playing"&&round===4&&score===500&&health===3'),'retry replays the same round from its starting score');
+q("$('#action').onclick()");ok(q('state==="setup"&&round===4&&score===500&&health===3'),'retry replays the same round from its starting score, after a chance to rearrange prizes');
 q("$('#alt').onclick()");ok(q('round===1&&score===0'),'Start over returns to round 1');
 const clearWith=(hp,combo)=>{q(`health=3;begin();health=${hp};bestChain=${combo};surge=hordePlan().surges;crabs=[];update(.01)`);return R.els['#icon'].textContent};
 q('round=2;castle=2');ok(clearWith(2,1)==='★☆☆','clearing with a heart lost and no big combo earns 1 star');
@@ -170,15 +180,22 @@ ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support
 q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
 const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 24 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
+// installable web app: manifest, icons and offline cache all line up
+console.log('Web app');
+{const root=path.join(__dirname,'..'),man=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8')),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8'),page=fs.readFileSync(NEW,'utf8');
+ok(man.icons.some(i=>i.sizes==='192x192')&&man.icons.some(i=>i.sizes==='512x512'&&i.purpose==='maskable')&&man.icons.every(i=>fs.existsSync(path.join(root,i.src))),'the manifest lists 192 and 512 px icons (one maskable) that exist');
+const cached=JSON.parse(sw.match(/FILES = (\[.*?\]);/)[1].replace(/'/g,'"'));ok(cached.filter(f=>f!=='./').every(f=>fs.existsSync(path.join(root,f)))&&man.icons.every(i=>cached.includes(i.src)),'the service worker caches the page, manifest and every icon');
+ok(/rel="manifest" href="manifest.webmanifest"/.test(page)&&/serviceWorker\.register\('sw\.js'\)/.test(page),'the page links the manifest and registers the service worker');}
+
 // ---------- difficulty curve via a bot ----------
-// The bot places its prizes in a band across the beach at the start of the round. Every 0.6–0.85 s (0.4–0.55 s when tapping pop-ups) it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
+// The bot places its prizes in a band across the beach before starting the round. Every 0.6–0.85 s (0.4–0.55 s when tapping pop-ups) it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
 // charged, tap a pop-up crab, whip a shell crab, else a 120-wide sweep. The skilled bot also spins on dense packs. All randomness is seeded.
 function playRound(file,rd,seed,skilled=false){
   const {run}=load(file);let s=seed;const rand=()=>(s=(s*16807)%2147483647)/2147483647;
   run(`Math.random=()=>(globalThis.__s=(globalThis.__s*16807)%2147483647)/2147483647`);run(`globalThis.__s=${seed+1}`);
-  run(`round=${rd};health=3;castle=${rd};begin()`);
+  run(`round=${rd};health=3;castle=${rd};begin(true)`);
   const hasPower=run('typeof trickPower!=="undefined"');
-  if(run('typeof placePrize')==='function')run('owned().forEach((p,i)=>placePrize(i,...[[110,430],[310,430],[210,395],[60,480],[360,480],[210,470],[140,370]][i]))');
+  if(run('typeof startRound')==='function')run('owned().forEach((p,i)=>placePrize(i,...[[110,430],[310,430],[210,395],[60,480],[360,480],[210,470],[140,370]][i]));startRound()');
   const popRound=run('typeof hordePlan==="function"&&!!hordePlan().pop');let t=0,next=0;
   while(run('state')==='playing'&&t<240){
     run('update(1/30)');t+=1/30;
