@@ -112,6 +112,6 @@ From round 3, each surge is one crab bigger than the last, and every surge is sl
 - **Purple shell crab** (round 3+, 20 points): a whip, spin or power snap clears it. A tap or sweep cracks the shell and knocks it back, and the next hit clears it.
 - **Crowned king crab** (round 5+, 40 points): only a spin or power snap clears it. Other tricks knock it back and stun it briefly. Kings are bigger and a little slower.
 
-**Pop-up crabs** (round 6) burrow up anywhere within reach. They duck under swipes, spins and whips, so only a tap within 28 units of the crab catches one. A crab left up too long (1.4 s at first, 0.8 s by the end) runs for the castle.
+**Pop-up crabs** (round 6) burrow up anywhere on the far half of the beach, well away from the castle. They duck under swipes, spins and whips, so only a tap within 28 units of the crab catches one, at any distance from the cowboy. A crab left up too long (1.4 s at first, 0.8 s by the end) runs for the castle.
 
 Wet sand still doubles crab speed in round 2. Knockbacks never push crabs off the beach. After a hit, the castle has 0.9 seconds of protection so simultaneous arrivals cannot take all three hearts in one frame. Particle effects and towel trails are capped for the phone prototype.

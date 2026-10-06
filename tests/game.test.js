@@ -121,8 +121,9 @@ ok(combo3()===0,'another ×3 combo straight after does not power it up again');r
 // pop-up round: crabs burrow up within reach; only taps catch them
 console.log('Pop-up crabs');
 ok(r('hordePlan(POP).pop')&&r('rounds[POP-1]')==='Pop-up crabs'&&!r('wetRound(POP)'),'round 6 is the pop-up round');
-r('round=POP;begin();for(let i=0;i<150;i++)update(1/30)');const pops=r('crabs.filter(c=>c.popper).map(c=>[c.x,c.y])');
-ok(pops.length>=2&&pops.every(([x,y])=>Math.hypot(x-210,y-530)<=210&&y>=190),`crabs pop up one at a time at spots within reach (${pops.length} up)`);
+r('round=POP;begin();for(let i=0;i<150;i++)update(1/30)');const pops=r('crabs.filter(c=>c.popper&&c.pop<c.up).map(c=>[c.x,c.y])');
+ok(pops.length>=2&&pops.every(([x,y])=>y>=200&&y<=400&&x>=40&&x<=380),`crabs pop up one at a time on the far half of the beach (${pops.length} up)`);
+r('crabs=[];spawnPop();Object.assign(crabs[0],{x:60,y:210,pop:0})');ok(r('perform({type:"snap",x:62,y:205,radius:43,points:[{x:62,y:205}]});crabs[0].away'),'a tap catches a pop-up even beyond the towel reach');
 r('crabs=[];spawnPop();crabs[0].pop=0');const pc=r('crabs[0]');
 r(`perform({type:'sweep',x:${pc.x+60},y:${pc.y},points:[{x:${pc.x-60},y:${pc.y}},{x:${pc.x+60},y:${pc.y}}]})`);ok(!r('crabs[0].away')&&/duck/.test(r('feedback')),'a pop-up crab ducks under a sweep');
 r(`perform({type:'snap',x:${pc.x+10},y:${pc.y-8},radius:43,points:[{x:${pc.x+10},y:${pc.y-8}}]})`);ok(r('crabs[0].away'),'but an accurate tap catches it');
