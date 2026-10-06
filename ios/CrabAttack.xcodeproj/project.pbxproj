@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		52D6B2FB98EC6672191E93E8 /* CrabAttackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DAC371FA23F752A9DE67581 /* CrabAttackApp.swift */; };
+		764E03DEB0747849C0DAE8BF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C846F5534C87CD4A2C0CD936 /* Assets.xcassets */; };
 		A9BAF39FBC3D967215213D0D /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = C8EC402C8ADEF43C3A5312B3 /* index.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		8D8FE7971B155FFBF2E4CFD1 /* CrabAttack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrabAttack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D8FE7971B155FFBF2E4CFD1 /* CrabAttack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CrabAttack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9DAC371FA23F752A9DE67581 /* CrabAttackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrabAttackApp.swift; sourceTree = "<group>"; };
+		C846F5534C87CD4A2C0CD936 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C8EC402C8ADEF43C3A5312B3 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -30,6 +32,7 @@
 		6F12851E3E890E87066448C7 /* CrabAttack */ = {
 			isa = PBXGroup;
 			children = (
+				C846F5534C87CD4A2C0CD936 /* Assets.xcassets */,
 				9DAC371FA23F752A9DE67581 /* CrabAttackApp.swift */,
 			);
 			path = CrabAttack;
@@ -83,6 +86,7 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					8460EB66CD9797D4C3B41F4B = {
+						DevelopmentTeam = YBDN2BGLMW;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -111,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				764E03DEB0747849C0DAE8BF /* Assets.xcassets in Resources */,
 				A9BAF39FBC3D967215213D0D /* index.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -164,10 +169,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = YBDN2BGLMW;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -188,7 +191,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -202,8 +204,11 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YBDN2BGLMW;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Crab Attack";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -216,6 +221,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saucyfinn.CrabAttack;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -256,10 +262,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = YBDN2BGLMW;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -273,7 +277,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -287,8 +290,11 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YBDN2BGLMW;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Crab Attack";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -301,6 +307,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saucyfinn.CrabAttack;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
