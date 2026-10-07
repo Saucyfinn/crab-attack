@@ -169,7 +169,7 @@ q('round=2;castle=2');ok(clearWith(2,1)==='★☆☆','clearing with a heart los
 q('round=2');ok(clearWith(3,1)==='★★☆','no hearts lost earns a second star');
 q('round=2');ok(clearWith(3,4)==='★★★','a ×4 combo earns the third star');
 q('round=2');clearWith(2,1);ok(JSON.parse(R.store.crabAttackStars)[1]===3,'best stars per round are kept, not overwritten by a worse run');
-ok(/3 \/ 24 ★|\d+ \/ 24 ★/.test(R.els['#note'].textContent),'build screen shows the star total');
+ok(/\d+ \/ 72 ★/.test(R.els['#note'].textContent),'build screen shows the star total out of 72 (24 rounds × 3)');
 q("round=3;begin();crabs=[];['sweep','snap','sweep','snap'].forEach((t,i)=>{spawn(0,'crab');Object.assign(crabs.at(-1),{x:200,y:400});clock+=.5;perform({type:t,x:200,y:400,radius:t==='snap'?43:undefined,points:[{x:140,y:400},{x:260,y:400}]})})");
 ok(q('bestChain')===4&&/combo star/.test(q('feedback')),'alternating tricks reach a ×4 combo and announce the star');
 q("round=5;begin();crabs=[];spawn(0,'king');Object.assign(crabs[0],{x:200,y:400});powerCooldown=0;perform({type:'spin',x:200,y:400,radius:125,points:[{x:200,y:400}]})");
@@ -178,13 +178,13 @@ q("begin();crabs=[];spawn(0,'crab');Object.assign(crabs[0],{x:200,y:400});perfor
 ok(q('freeze===0'),'a single small hit does not pause the game');
 ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support');
 q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
-const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 24 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
+const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 72 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
 // full game: rounds 1–3 are free; in the iPhone app an in-app purchase unlocks rounds 4–8, elsewhere they point to the app
 console.log('Full game unlock');
 {const W=load(NEW),w=W.run;
 w('round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
-ok(w('state')==='between'&&/Rounds 4–8 are in the full game, in the Crab Attack iPhone app/.test(W.els['#description'].textContent),'without a store, clearing round 3 says rounds 4–8 are in the iPhone app');
+ok(w('state')==='between'&&/Rounds 4–24 are in the full game, in the Crab Attack iPhone app/.test(W.els['#description'].textContent),'without a store, clearing round 3 says rounds 4–24 are in the iPhone app');
 ok(W.els['#action'].textContent==='Play again from round 1'&&W.els['#alt'].hidden===true,'and offers to play again from round 1');
 w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 4');
 w('round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(W.els['#action'].textContent==='Build & next round'&&!/full game/.test(W.els['#description'].textContent),'rounds 1–2 lead on as before');
@@ -201,6 +201,32 @@ i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & ne
 i("$('#action').onclick()");ok(i('round')===4&&i('state')==='setup','to round 4');
 i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
 
+// three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
+console.log('Beaches');
+{const B=load(NEW),b=B.run,sweep='perform({type:"sweep",x:270,y:420,points:[{x:150,y:420},{x:270,y:420}]})';
+ok(b('ROUNDS')===24&&b('roundNotes.length')===24&&b('patterns.length')===24,'24 rounds, each with a name, a note and a movement pattern');
+ok(b('[1,8,9,16,17,24].map(r=>beachOf(r)).join()')==='0,0,1,1,2,2','eight rounds on each of Sunny Bay, Rocky Point and Night Tide');
+ok(b('hordePlan(9).hermit>0&&hordePlan(10).twin===0&&hordePlan(11).twin>0&&hordePlan(16).ghost===0&&hordePlan(17).ghost>0'),'hermit crabs from Rocky Point, twin crabs from round 11, ghost crabs on Night Tide');
+ok(b('[14,21].every(r=>hordePlan(r).pop)&&hordePlan(16).kings===2&&hordePlan(24).kings===2'),'each beach has a pop-up round and ends with two kings per surge');
+b('round=9;begin();crabs=[];spawn(0,"hermit");Object.assign(crabs[0],{x:210,y:420,bx:210,hidden:true,hideT:5})');
+ok(!b(sweep+';crabs[0].away')&&/hermit/i.test(b('feedback')),'a hiding hermit crab shrugs off a sweep');
+b('crabs[0].hidden=false');ok(b(sweep+';crabs[0].away'),'but is swept away once it peeks out');
+b('crabs=[];spawn(0,"hermit");Object.assign(crabs[0],{x:210,y:300,bx:210,hideT:.01});update(.05)');ok(b('crabs[0].hidden')&&b('(()=>{const y=crabs[0].y;update(.2);return crabs[0].y===y})()'),'hermits take turns hiding, and stay put while hidden');
+b('round=11;begin();crabs=[];spawn(0,"twin");Object.assign(crabs[0],{x:210,y:420,bx:210});'+sweep);
+ok(b('crabs.filter(c=>c.kind==="baby"&&!c.away).length')===2&&/split/.test(b('feedback')),'a swept twin crab splits into two baby crabs');
+b('crabs=[];spawn(0,"twin");Object.assign(crabs[0],{x:210,y:420,bx:210});powerCooldown=0;perform({type:"spin",x:210,y:420,radius:125,points:[{x:210,y:420}]})');ok(b('crabs.length===1&&crabs[0].away'),'a spin clears a twin crab whole');
+b('round=17;begin();crabs=[];spawn(0,"ghost");Object.assign(crabs[0],{x:210,y:420,bx:210,phase:0})');
+b('crabs[0].t=(()=>{for(let t=0;t<4;t+=.05){crabs[0].t=t;if(!solid(crabs[0]))return t}})()');ok(!b(sweep+';crabs[0].away'),'the towel passes straight through a faded ghost crab');
+b('crabs[0].t=Math.PI/3.2');ok(b(sweep+';crabs[0].away'),'but sweeps it away while it shows');
+b('unlocked=true;round=8;castle=8;health=3;layout={0:{x:150,y:420}};begin();surge=hordePlan().surges;crabs=[];update(.01)');
+ok(b('state')==='between'&&/Sunny Bay saved/.test(B.els['#title'].textContent)&&!b('ceremony'),'clearing round 8 saves Sunny Bay, with no prize to collect');
+b("$('#action').onclick()");ok(b('round')===9&&b('Object.keys(layout).length')===0&&b('state')==='playing','and leads on to round 9 on a clear Rocky Point beach');
+b('surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a bucket and spade/.test(B.els['#description'].textContent),'Rocky Point has its own prizes, starting with a bucket and spade');
+b("collectPrize();$('#action').onclick()");ok(b('state')==='setup'&&b('owned().map(p=>p.name).join()')==='Bucket and spade','and its tray holds only Rocky Point prizes');
+b('round=24;castle=24;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(b('state')==='won'&&/all 24 rounds/.test(B.els['#description'].textContent),'clearing round 24 wins the game');
+ok(b('beachPrizes.length===3&&beachPrizes.every(l=>l.length===7)&&beachPrizes.flat().every(p=>typeof prizeArt[p.name]==="function")'),'seven prizes with artwork on every beach');
+b('beachPrizes.flat().forEach(p=>drawPrize(p,100,100));for(const r of [9,17]){round=r;begin();crabs=[];["hermit","twin","ghost","baby","king"].forEach((k,i)=>spawn(i,k));crabs[0].hidden=true;draw()}');ok(true,'every beach, new crab and new prize draws without errors');}
+
 // installable web app: manifest, icons and offline cache all line up
 console.log('Web app');
 {const root=path.join(__dirname,'..'),man=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8')),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8'),page=fs.readFileSync(NEW,'utf8');
@@ -209,7 +235,8 @@ const cached=JSON.parse(sw.match(/FILES = (\[.*?\]);/)[1].replace(/'/g,'"'));ok(
 ok(/rel="manifest" href="manifest.webmanifest"/.test(page)&&/serviceWorker\.register\('sw\.js'\)/.test(page),'the page links the manifest and registers the service worker');}
 
 // ---------- difficulty curve via a bot ----------
-// The bot places its prizes in a band across the beach before starting the round. Every 0.6–0.85 s (0.4–0.55 s when tapping pop-ups) it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
+// The bot places its prizes in a band across the beach before starting the round. Like a player, it ignores crabs it can't
+// hit yet (pop-ups still underground, hermits hiding in their shells, faded ghost crabs). Every 0.6–0.85 s (0.4–0.55 s when tapping pop-ups) it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
 // charged, tap a pop-up crab, whip a shell crab, else a 120-wide sweep. The skilled bot also spins on dense packs. All randomness is seeded.
 function playRound(file,rd,seed,skilled=false){
   const {run}=load(file);let s=seed;const rand=()=>(s=(s*16807)%2147483647)/2147483647;
@@ -221,7 +248,7 @@ function playRound(file,rd,seed,skilled=false){
   while(run('state')==='playing'&&t<240){
     run('update(1/30)');t+=1/30;
     if(t>=next){next=t+(popRound?.4+rand()*.15:.6+rand()*.25);const ex=(rand()-.5)*50,ey=(rand()-.5)*40;
-      run(`(()=>{const live=crabs.filter(c=>!c.away&&!c.dead&&c.y>150&&!(c.popper&&c.pop<0));if(!live.length)return;live.sort((a,b)=>b.y-a.y);const lo={...live[0],x:live[0].x+${ex},y:live[0].y+${ey}};
+      run(`(()=>{const live=crabs.filter(c=>!c.away&&!c.dead&&c.y>150&&!(c.popper&&c.pop<0)&&!c.hidden&&(typeof solid!=='function'||solid(c)));if(!live.length)return;live.sort((a,b)=>b.y-a.y);const lo={...live[0],x:live[0].x+${ex},y:live[0].y+${ey}};
         const king=${hasPower}&&live.find(c=>c.kind==='king'&&c.y>380);const pack=${skilled}&&live[0].y>330&&live.filter(c=>Math.hypot(c.x-lo.x,c.y-lo.y)<110).length>=5;if(pack&&!king&&powerCooldown<=0){perform({type:'spin',x:lo.x,y:lo.y,radius:125,points:[{x:lo.x,y:lo.y}]});return}
         if(king&&powerCooldown<=0){perform({type:'spin',x:king.x,y:king.y,radius:125,points:[{x:king.x,y:king.y}]});return}
         const tough=${hasPower}&&(lo.armor||1)===2;
@@ -232,15 +259,18 @@ function playRound(file,rd,seed,skilled=false){
   }
   return {won:run('state')!=='lost',lost:3-Math.max(0,run('health'))};
 }
-console.log('\nBot survival per round (30 seeded runs each)');
+console.log('\nBot survival per round (30 seeded runs each, all 24 rounds)');
 const N=30,rows=[];
-for(let rd=1;rd<=8;rd++){
+for(let rd=1;rd<=24;rd++){
   const stats=(f,k)=>{const g=[...Array(N)].map((_,i)=>playRound(f,rd,1000+i*7919,k));return [g.filter(x=>x.won).length/N,g.reduce((a,x)=>a+x.lost,0)/N]};
-  const o=OLD?stats(OLD):[null,null],n=stats(NEW),k=stats(NEW,true);rows.push([rd,o[0],n[0],k[0]]);
+  const o=OLD&&rd<=8?stats(OLD):[null,null],n=stats(NEW),k=stats(NEW,true);rows.push([rd,o[0],n[0],k[0]]);
   const f=([w,h])=>`${(w*100).toFixed(0).padStart(3)}% won, ${h.toFixed(1)} hearts lost`;
-  console.log(`    round ${rd}: ${OLD?'baseline '+f(o)+'  |  ':''}casual ${f(n)}  |  skilled ${f(k)}`);
+  console.log(`    round ${String(rd).padStart(2)}: ${OLD&&rd<=8?'baseline '+f(o)+'  |  ':''}casual ${f(n)}  |  skilled ${f(k)}`);
 }
 ok(rows[0][2]>=.9,'round 1 stays approachable for the casual bot (≥90%)');
 ok(rows[7][3]>0&&rows[7][3]<.9,'a skilled player can clear round 8, but not every time');ok(rows[7][2]<rows[0][2],'round 8 is clearly harder than round 1');
-if(OLD)ok(rows.slice(4).reduce((a,r)=>a+r[2],0)<rows.slice(4).reduce((a,r)=>a+r[1],0),'rounds 5–8 are harder than the baseline');
+ok(rows[8][2]>=.8&&rows[16][2]>=.8,'each new beach opens gently for the casual bot (≥80% on rounds 9 and 17)');
+ok(rows[15][2]<rows[8][2]&&rows[23][2]<rows[16][2],'each beach ends harder than it starts');
+ok(rows[23][3]>0&&rows[23][3]<.9,'a skilled player can clear round 24, but not every time');
+if(OLD)ok(rows.slice(4,8).reduce((a,r)=>a+r[2],0)<rows.slice(4,8).reduce((a,r)=>a+r[1],0),'rounds 5–8 are harder than the baseline');
 console.log(`\n${pass} checks passed`);
