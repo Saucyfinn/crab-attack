@@ -4,11 +4,10 @@ Usage: ASC_KEY_ID=... ASC_ISSUER_ID=... python check_asc_key.py AuthKey.p8
 Signs a short-lived token with the key and asks App Store Connect for the Crab Attack app record, so a wrong
 key, key ID or issuer ID fails here with a clear message instead of deep inside xcodebuild.
 """
-import json, os, sys, time, urllib.error, urllib.request
+import sys, time, urllib.error
+from email.utils import parsedate_to_datetime
 
-import jwt
-
-BUNDLE_ID = 'com.saucyfinn.CrabAttack'
+import asc
 
 
 def fail(message):
@@ -16,32 +15,18 @@ def fail(message):
     sys.exit(1)
 
 
-key_id, issuer_id = os.environ['ASC_KEY_ID'], os.environ['ASC_ISSUER_ID']
-pem = open(sys.argv[1]).read()
+pem = asc.configure(sys.argv[1])
 if '-----BEGIN PRIVATE KEY-----' not in pem or '-----END PRIVATE KEY-----' not in pem:
     fail('ASC_PRIVATE_KEY must be the whole .p8 file, including the BEGIN PRIVATE KEY and END PRIVATE KEY lines.')
-
-from email.utils import parsedate_to_datetime
-
-
-def token():
-    # Back-date the start a minute so a runner clock slightly ahead of Apple's is not rejected.
-    now = int(time.time())
-    return jwt.encode({'iss': issuer_id, 'iat': now - 60, 'exp': now + 600, 'aud': 'appstoreconnect-v1'},
-                      pem, algorithm='ES256', headers={'kid': key_id, 'typ': 'JWT'})
-
-
 try:
-    token()
+    asc.token()
 except Exception as e:
     fail(f'ASC_PRIVATE_KEY could not be read as a private key ({e}). Paste the .p8 file again.')
 
 # A newly created key can take a few minutes before Apple accepts it, so a 401 is retried for about four minutes.
-url = f'https://api.appstoreconnect.apple.com/v1/apps?filter%5BbundleId%5D={BUNDLE_ID}'
 for attempt in range(1, 9):
-    request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + token(), 'User-Agent': 'crab-attack-ci'})
     try:
-        apps = json.load(urllib.request.urlopen(request, timeout=30))['data']
+        app = asc.app_id()
         break
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors='replace')[:400]
@@ -61,6 +46,6 @@ for attempt in range(1, 9):
     except urllib.error.URLError as e:
         fail(f'Could not reach App Store Connect: {e.reason}')
 
-if not apps:
-    fail(f'The key works, but App Store Connect has no app with bundle ID {BUNDLE_ID}. Create it under Apps → + → New App.')
-print(f"Key accepted; found {apps[0]['attributes']['name']} ({BUNDLE_ID}).")
+if not app:
+    fail(f'The key works, but App Store Connect has no app with bundle ID {asc.BUNDLE_ID}. Create it under Apps → + → New App.')
+print(f'Key accepted; found the app record for {asc.BUNDLE_ID}.')
