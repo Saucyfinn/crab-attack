@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [index.html, manifest.webmanifest, sw.js, 'icons/**', wrangler.jsonc, .assetsignore, .github/workflows/cloudflare.yml]
+    paths: [index.html, privacy.html, manifest.webmanifest, sw.js, 'icons/**', wrangler.jsonc, .assetsignore, .github/workflows/cloudflare.yml]
 
 concurrency:
   group: cloudflare

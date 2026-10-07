@@ -1,7 +1,9 @@
 # Archives the iOS app on a GitHub-hosted Mac, signs it with cloud-managed certificates and uploads it to
 # App Store Connect, so a release needs no Mac of your own. Runs on every push to main that changes the game
 # or the iOS app, or by hand from the Actions tab (Run workflow). Once Apple has processed the build, it is added to
-# a TestFlight internal testing group ("Internal Testers" unless the TESTFLIGHT_GROUP repository variable says otherwise).
+# a TestFlight internal testing group ("Internal Testers" unless the TESTFLIGHT_GROUP repository variable says otherwise)
+# and, once the app's TestFlight Test Information is filled in, to an external group with a public link ("Public
+# Testers", or the TESTFLIGHT_EXTERNAL_GROUP variable; "off" turns it off), submitted for beta review.
 #
 # Repository secrets (Settings → Secrets and variables → Actions), from an App Store Connect API key with the
 # Admin role (Users and Access → Integrations → Team Keys); Admin is needed for cloud-managed signing:
@@ -73,6 +75,8 @@ jobs:
     env:
       # Internal group the build is added to; created on first use. Set the TESTFLIGHT_GROUP repository variable to change it.
       TESTFLIGHT_GROUP: ${{ vars.TESTFLIGHT_GROUP || 'Internal Testers' }}
+      # External group with a public link; created on first use. Set TESTFLIGHT_EXTERNAL_GROUP to rename it, or to "off".
+      TESTFLIGHT_EXTERNAL_GROUP: ${{ vars.TESTFLIGHT_EXTERNAL_GROUP || 'Public Testers' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -83,8 +87,11 @@ jobs:
           PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: ios/asc_key.sh
 
-      - name: Add the build to TestFlight internal testing
-        run: '"$RUNNER_TEMP/venv/bin/python" ios/testflight.py "$RUNNER_TEMP/asc/AuthKey.p8" ${{ github.run_number }} "$TESTFLIGHT_GROUP"'
+      # "What to Test" for external testers: the PR title from a merge commit, otherwise the commit subject.
+      - name: Send the build to TestFlight testers
+        run: |
+          export WHAT_TO_TEST="$(git log -1 --format=%B | grep -v -e '^Merge pull request' -e '^[[:space:]]*$' | head -1)"
+          "$RUNNER_TEMP/venv/bin/python" ios/testflight.py "$RUNNER_TEMP/asc/AuthKey.p8" ${{ github.run_number }} "$TESTFLIGHT_GROUP" "$TESTFLIGHT_EXTERNAL_GROUP"
 
       - name: Remove the API key
         if: always()
