@@ -21,26 +21,45 @@ pem = open(sys.argv[1]).read()
 if '-----BEGIN PRIVATE KEY-----' not in pem or '-----END PRIVATE KEY-----' not in pem:
     fail('ASC_PRIVATE_KEY must be the whole .p8 file, including the BEGIN PRIVATE KEY and END PRIVATE KEY lines.')
 
-try:
+from email.utils import parsedate_to_datetime
+
+
+def token():
+    # Back-date the start a minute so a runner clock slightly ahead of Apple's is not rejected.
     now = int(time.time())
-    token = jwt.encode({'iss': issuer_id, 'iat': now, 'exp': now + 600, 'aud': 'appstoreconnect-v1'},
-                       pem, algorithm='ES256', headers={'kid': key_id, 'typ': 'JWT'})
+    return jwt.encode({'iss': issuer_id, 'iat': now - 60, 'exp': now + 600, 'aud': 'appstoreconnect-v1'},
+                      pem, algorithm='ES256', headers={'kid': key_id, 'typ': 'JWT'})
+
+
+try:
+    token()
 except Exception as e:
     fail(f'ASC_PRIVATE_KEY could not be read as a private key ({e}). Paste the .p8 file again.')
 
-request = urllib.request.Request(f'https://api.appstoreconnect.apple.com/v1/apps?filter[bundleId]={BUNDLE_ID}',
-                                 headers={'Authorization': 'Bearer ' + token})
-try:
-    apps = json.load(urllib.request.urlopen(request, timeout=30))['data']
-except urllib.error.HTTPError as e:
-    if e.code == 401:
-        fail('App Store Connect rejected the API key (401). Check that ASC_KEY_ID is the key ID in the .p8 file name '
-             '(AuthKey_<KEY ID>.p8) and that ASC_ISSUER_ID matches Users and Access → Integrations → App Store Connect API.')
-    if e.code == 403:
-        fail('The API key is valid but not allowed to do this (403). Use a team key with the Admin role.')
-    fail(f'App Store Connect returned HTTP {e.code}: {e.read().decode()[:300]}')
-except urllib.error.URLError as e:
-    fail(f'Could not reach App Store Connect: {e.reason}')
+# A newly created key can take a few minutes before Apple accepts it, so a 401 is retried for about four minutes.
+url = f'https://api.appstoreconnect.apple.com/v1/apps?filter%5BbundleId%5D={BUNDLE_ID}'
+for attempt in range(1, 9):
+    request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + token(), 'User-Agent': 'crab-attack-ci'})
+    try:
+        apps = json.load(urllib.request.urlopen(request, timeout=30))['data']
+        break
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors='replace')[:400]
+        if e.code != 401:
+            if e.code == 403:
+                fail('The API key is valid but not allowed to do this (403). Use a team key with the Admin role.')
+            fail(f'App Store Connect returned HTTP {e.code}: {body}')
+        skew = ''
+        if e.headers.get('Date'):
+            skew = f', runner clock is {time.time() - parsedate_to_datetime(e.headers["Date"]).timestamp():+.0f} s off Apple\'s'
+        print(f'Attempt {attempt}: App Store Connect answered 401{skew}: {body}')
+        if attempt == 8:
+            fail('App Store Connect kept rejecting the API key (401). Check that ASC_KEY_ID is the key ID in the .p8 file '
+                 'name (AuthKey_<KEY ID>.p8), that ASC_ISSUER_ID matches Users and Access → Integrations → App Store '
+                 'Connect API, and that the key is a team key that has not been revoked.')
+        time.sleep(30)
+    except urllib.error.URLError as e:
+        fail(f'Could not reach App Store Connect: {e.reason}')
 
 if not apps:
     fail(f'The key works, but App Store Connect has no app with bundle ID {BUNDLE_ID}. Create it under Apps → + → New App.')
