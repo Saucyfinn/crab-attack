@@ -4,7 +4,7 @@ A small phone-friendly beach game. Use touch gestures to shoo crabs away with a 
 
 ## Play
 
-Open `index.html` in a browser. Tap **Let's play**, then swipe across approaching crabs, or swing your towel like a golf club. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear eight rounds to win.
+Open `index.html` in a browser. Tap **Let's play**, then swipe across approaching crabs, or swing your towel like a golf club. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear all 24 rounds, across three beaches, to win.
 
 Wet sand in round 2 makes crabs move twice as fast, and round 6 is a pop-up round where crabs burrow up at random and only accurate taps catch them. Later rounds bring bigger hordes, jumpy crabs and armoured crabs that need stronger towel tricks. Use the pause button to take a break; switching apps also pauses the game.
 
@@ -51,7 +51,7 @@ node tests/game.test.js index.html /tmp/old.html
 
 ## Stars, retries and sound
 
-Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and the total out of 24 shows on the start and build screens.
+Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and the total out of 72 shows on the start and build screens.
 
 If the crabs take your castle, the game says how many crabs were left. **Retry round** replays that round from the score you started it with. **Start over** returns to round 1.
 
@@ -92,6 +92,15 @@ Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a 
 
 Kings shove through in half the time.
 
+Each new beach starts with clear sand and an empty tray, and has its own seven prizes, won in this order:
+
+| Beach | Prizes (hold time · crabs before it falls) |
+|---|---|
+| Rocky Point | Bucket and spade (0.5 s · 4), Snorkel set (0.5 s · 4), Lilo (0.55 s · 6), Beach cricket set (0.6 s · 5), Kayak (0.6 s · 7), Surfboard (0.6 s · 7), Volleyball net (0.65 s · 10) |
+| Night Tide | Lantern (0.7 s · 4), Fish and chips (1.3 s · 5), Sleeping bag (0.6 s · 6), Campfire (0.9 s · 6), Telescope (0.6 s · 5), Hammock (0.6 s · 9), Tent (0.8 s · 9) |
+
+The last round of each beach wins no prize: clearing it saves the beach and moves on to the next one.
+
 ## Golden towel
 
 Reaching a ×3 combo (three different tricks in a row, each within two seconds) turns the towel golden for 4 seconds: 50 units more reach, 12 units wider swipes, and one step more hitting power, so sweeps clear shell crabs and whips clear kings. A ring above the cowboy's hat shows the time left. It can trigger again 10 seconds after it wears off.
@@ -123,6 +132,36 @@ Pressure builds across the game and within each round:
 | 7 Crab train | 6 | 141 | 2.4 s | more jumpy and shell crabs |
 | 8 Last tide | 6 | 147 | 2.4 s | two kings per surge |
 
+After Sunny Bay (rounds 1–8) come two more beaches of eight rounds. Each starts a little easier than round 8 to make room for its new crabs, then builds to two kings per surge again. Rounds 1–8 play exactly as before.
+
+**Rocky Point** (rocks and rock pools along the edges)
+
+| Round | Surges | Crabs | Gap between surges | New threat |
+|---|---|---|---|---|
+| 9 Rock hop | 3 | 39 | 3.3 s | hermit crabs |
+| 10 Hermit hollow | 3 | 42 | 3.2 s | more hermits |
+| 11 Twin trouble | 4 | 62 | 3.1 s | twin crabs |
+| 12 Rock pool run | 4 | 66 | 3.0 s | rock pools (wet) |
+| 13 Shell game | 4 | 70 | 2.9 s | shells, hermits and twins |
+| 14 Pop-up pools | — | 38 | pops as in round 6, a little faster | crabs burrow up one at a time |
+| 15 Crab conga | 5 | 100 | 2.6 s | one king per surge |
+| 16 King of the rocks | 6 | 129 | 2.5 s | two kings per surge |
+
+**Night Tide** (dark sand under the moon)
+
+| Round | Surges | Crabs | Gap between surges | New threat |
+|---|---|---|---|---|
+| 17 Moonrise | 3 | 42 | 3.2 s | ghost crabs |
+| 18 Ghost walk | 3 | 45 | 3.1 s | more ghosts |
+| 19 Glow tide | 4 | 66 | 2.9 s | glowing water (wet) |
+| 20 Moon dance | 4 | 70 | 2.8 s | hermits and ghosts |
+| 21 Midnight pop-ups | — | 42 | pops as in round 6, faster still | pop-ups in the dark |
+| 22 Twin moons | 5 | 100 | 2.6 s | one king, twins and ghosts |
+| 23 Ghost train | 5 | 100 | 2.5 s | kings on the ghost train |
+| 24 Last light | 6 | 123 | 2.5 s | two kings per surge |
+
+Each round also has a movement pattern (sway, sides, parade, dive, train, wiggle or pop-up), shared with the first beach's rounds of the same style.
+
 From round 3, each surge is one crab bigger than the last, and every surge is slightly faster. Rounds 1–2 use only plain crabs that follow predictable paths. The build screen previews the next round's threat.
 
 **Jumpy crabs** (from round 4, up to about half the horde by round 8) sidestep at random, dash forward and stop suddenly. A puff of sand marks a dash. On wet sand, dashes are reduced so they don't stack with the water's double speed.
@@ -131,6 +170,12 @@ From round 3, each surge is one crab bigger than the last, and every surge is sl
 
 - **Purple shell crab** (round 3+, 20 points): a whip, spin or power snap clears it. A tap or sweep cracks the shell and knocks it back, and the next hit clears it.
 - **Crowned king crab** (round 5+, 40 points): only a spin or power snap clears it. Other tricks knock it back and stun it briefly. Kings are bigger and a little slower.
+
+**New crabs on the later beaches:**
+
+- **Hermit crab** (Rocky Point on, 20 points): every second or so it ducks into its spiral shell for about a second and stops moving. Any trick that reaches it then does nothing ("a hermit hid!"); hit it when it peeks out.
+- **Twin crab** (round 11 on, 15 points): a tap, sweep or whip clears it but splits it into two small, quick baby crabs (5 points each). A spin or power snap clears it whole.
+- **Ghost crab** (Night Tide, 20 points): a pale crab that zigzags and fades in and out. The towel passes straight through a faded ghost; it can only be hit while it shows (a little over half the time).
 
 **Pop-up crabs** (round 6) burrow up anywhere on the far half of the beach, well away from the castle. They duck under swipes, spins and whips, so only a tap within 28 units of the crab catches one, at any distance from the cowboy. A crab left up too long (1.4 s at first, 0.8 s by the end) runs for the castle.
 
