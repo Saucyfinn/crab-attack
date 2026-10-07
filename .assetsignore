@@ -3,5 +3,6 @@
 !index.html
 !manifest.webmanifest
 !sw.js
+!privacy.html
 !icons/
 !icons/*.png
