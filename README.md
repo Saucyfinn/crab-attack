@@ -26,7 +26,7 @@ Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhon
 
 ### Releasing to App Store Connect without a Mac
 
-`.github/workflows/app-store.yml` archives the app on a GitHub-hosted Mac, signs it with cloud-managed certificates and uploads it to App Store Connect. It runs on every push to `main` that changes `index.html` or `ios/`, or on demand from **Actions → App Store Connect → Run workflow**. The workflow run number becomes the build number. It needs three repository secrets from an App Store Connect API key with the Admin role (**Users and Access → Integrations → Team Keys**): `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_PRIVATE_KEY` (the contents of the `.p8` file). Builds show up under **TestFlight** once Apple finishes processing them.
+`.github/workflows/app-store.yml` archives the app on a GitHub-hosted Mac, signs it with cloud-managed certificates and uploads it to App Store Connect. It runs on every push to `main` that changes `index.html` or `ios/`, or on demand from **Actions → App Store Connect → Run workflow**. The workflow run number becomes the build number. It needs three repository secrets from an App Store Connect API key with the Admin role (**Users and Access → Integrations → Team Keys**): `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_PRIVATE_KEY` (the contents of the `.p8` file). Before building, `ios/check_asc_key.py` checks that App Store Connect accepts the key and has the app record, and says which secret to fix if not. Builds show up under **TestFlight** once Apple finishes processing them.
 
 ## Android app
 
