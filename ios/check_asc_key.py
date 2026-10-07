@@ -20,7 +20,6 @@ key_id, issuer_id = os.environ['ASC_KEY_ID'], os.environ['ASC_ISSUER_ID']
 pem = open(sys.argv[1]).read()
 if '-----BEGIN PRIVATE KEY-----' not in pem or '-----END PRIVATE KEY-----' not in pem:
     fail('ASC_PRIVATE_KEY must be the whole .p8 file, including the BEGIN PRIVATE KEY and END PRIVATE KEY lines.')
-print(f'Key ID {key_id[:2]}…{key_id[-2:]} ({len(key_id)} characters), issuer ID {len(issuer_id)} characters')
 
 try:
     now = int(time.time())
