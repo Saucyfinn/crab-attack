@@ -1,0 +1,41 @@
+# Publishes the web app to Cloudflare (https://crab-attack.hvrdfbj65m.workers.dev) as a static-assets Worker.
+# Runs on every push to main that changes the web app, or by hand from the Actions tab (Run workflow).
+# The game's tests run first, so a failing build is never deployed.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   an API token made from the "Edit Cloudflare Workers" template
+#                          (Cloudflare dashboard → My Profile → API Tokens → Create Token)
+#   CLOUDFLARE_ACCOUNT_ID  the Account ID shown on the Workers & Pages overview page
+name: Cloudflare
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [index.html, manifest.webmanifest, sw.js, 'icons/**', wrangler.jsonc, .assetsignore, .github/workflows/cloudflare.yml]
+
+concurrency:
+  group: cloudflare
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Test the game
+        run: node tests/game.test.js
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.148.0'
+          command: deploy

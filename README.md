@@ -18,7 +18,7 @@ On a PC the board keeps its portrait shape, centred on a sea backdrop, and draws
 
 The iOS and Android apps only bundle `index.html`; the web app files are ignored there.
 
-It is hosted on Cloudflare at https://crab-attack.hvrdfbj65m.workers.dev as a static-assets Worker (`wrangler.jsonc`). To publish changes, run `npx wrangler deploy` from the repo root. `.assetsignore` allows only the page, manifest, service worker and icons to be uploaded, so the rest of the repo stays private.
+It is hosted on Cloudflare at https://crab-attack.hvrdfbj65m.workers.dev as a static-assets Worker (`wrangler.jsonc`). `.github/workflows/cloudflare.yml` publishes it automatically whenever the web app changes on `main` (after the tests pass), or on demand from **Actions → Cloudflare → Run workflow**; it needs the `CLOUDFLARE_API_TOKEN` (from the **Edit Cloudflare Workers** token template) and `CLOUDFLARE_ACCOUNT_ID` repository secrets. To publish by hand instead, run `npx wrangler deploy` from the repo root. `.assetsignore` allows only the page, manifest, service worker and icons to be uploaded, so the rest of the repo stays private.
 
 ## iOS app
 
