@@ -16,7 +16,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [index.html, 'ios/**', .github/workflows/app-store.yml]
+    # The release scripts in ios/ (*.py, *.sh) are not part of the app, so changing only them does not make a new build.
+    paths: [index.html, 'ios/**', '!ios/*.py', '!ios/*.sh', .github/workflows/app-store.yml]
 
 concurrency:
   group: app-store
