@@ -107,10 +107,16 @@ def submit_for_review(build):
             'type': 'betaAppReviewSubmissions', 'relationships': {'build': {'data': {'type': 'builds', 'id': build}}}}})
         return 'submitted for beta review'
     except urllib.error.HTTPError as e:
-        if e.code != 409:
+        if e.code not in (409, 422):
             raise
-        # Apple answers 409 when the build is already submitted or approved, or when something blocks submission.
-        print(f'::warning::Beta review submission was not accepted (409): {e.read().decode(errors="replace")[:400]}')
+        # Apple answers 409/422 when the build is already submitted or approved, when another build of the same version
+        # is still in beta review (only one at a time), or when something else blocks submission.
+        body = e.read().decode(errors='replace')
+        if 'ANOTHER_BUILD_IN_REVIEW' in body:
+            print('::warning::Another build of this version is still in beta review, so this one was not submitted. '
+                  'Re-run this job once that review finishes, or submit it in App Store Connect → TestFlight.')
+            return 'not submitted yet, because another build is still in beta review (re-run this job afterwards)'
+        print(f'::warning::Beta review submission was not accepted ({e.code}): {body[:400]}')
         return 'not submitted (see the warning above)'
 
 
