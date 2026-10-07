@@ -180,6 +180,27 @@ ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support
 q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
 const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 24 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
+// full game: rounds 1–3 are free; in the iPhone app an in-app purchase unlocks rounds 4–8, elsewhere they point to the app
+console.log('Full game unlock');
+{const W=load(NEW),w=W.run;
+w('round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
+ok(w('state')==='between'&&/Rounds 4–8 are in the full game, in the Crab Attack iPhone app/.test(W.els['#description'].textContent),'without a store, clearing round 3 says rounds 4–8 are in the iPhone app');
+ok(W.els['#action'].textContent==='Play again from round 1'&&W.els['#alt'].hidden===true,'and offers to play again from round 1');
+w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 4');
+w('round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(W.els['#action'].textContent==='Build & next round'&&!/full game/.test(W.els['#description'].textContent),'rounds 1–2 lead on as before');
+const I=load(NEW),i=I.run;
+i("globalThis.msgs=[];globalThis.crabStore={available:true};globalThis.webkit={messageHandlers:{store:{postMessage:m=>msgs.push(m)}}}");
+i("storeChanged({unlocked:false,price:'$0.99'});round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
+ok(/Unlock them once to keep playing/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 3 offers to unlock all rounds at the store price');
+ok(I.els['#alt'].hidden===false&&I.els['#alt'].textContent==='Restore purchase','with a Restore purchase button');
+i("$('#action').onclick()");ok(i('msgs.join()')==='buy'&&i('state')==='between'&&i('round')===3&&I.els['#action'].textContent==='Unlocking…','tapping it asks the App Store to buy, without moving on');
+i("$('#action').onclick()");ok(i('msgs.length')===1,'a second tap while the purchase is open does nothing');
+i("storeChanged({unlocked:false,message:'Purchase failed'})");ok(I.els['#action'].textContent==='Unlock all rounds · $0.99'&&I.els['#note'].textContent==='Purchase failed','a failed purchase says why and lets you try again');
+i("$('#alt').onclick()");ok(i('msgs.at(-1)')==='restore'&&i('round')===3,'Restore purchase asks the App Store to restore');
+i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & next round'&&I.els['#alt'].hidden===true&&/unlocked/.test(I.els['#note'].textContent),'once unlocked the button leads on');
+i("$('#action').onclick()");ok(i('round')===4&&i('state')==='setup','to round 4');
+i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
+
 // installable web app: manifest, icons and offline cache all line up
 console.log('Web app');
 {const root=path.join(__dirname,'..'),man=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8')),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8'),page=fs.readFileSync(NEW,'utf8');

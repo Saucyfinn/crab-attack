@@ -1,0 +1,21 @@
+# Compiles the iOS app (unsigned) on a GitHub-hosted Mac for pull requests that change the game or the iOS app,
+# so Swift errors show up before merging rather than in the App Store Connect upload.
+name: iOS build check
+
+on:
+  pull_request:
+    paths: [index.html, 'ios/**', .github/workflows/ios-build.yml]
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build the app without signing
+        run: |
+          xcodebuild -version
+          xcodebuild build \
+            -project ios/CrabAttack.xcodeproj -scheme CrabAttack -configuration Release \
+            -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO
