@@ -9,6 +9,8 @@ targets:
   CrabAttack:
     type: application
     platform: iOS
+    # Shared scheme, so command-line builds (the App Store workflow) can archive it.
+    scheme: {}
     sources:
       - CrabAttack
       # The web game itself, bundled straight from the repo root so the app never runs a stale copy.

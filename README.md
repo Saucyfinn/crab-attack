@@ -24,6 +24,10 @@ It is hosted on Cloudflare at https://crab-attack.hvrdfbj65m.workers.dev as a st
 
 Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhone, and press Run. The app shows the game full-screen in a web view and bundles the repo's `index.html` directly, so changes to the game appear on the next build. To run on a physical iPhone, choose your team under **Signing & Capabilities**. The project is generated from `ios/project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen); run `xcodegen` in `ios/` after editing that file.
 
+### Releasing to App Store Connect without a Mac
+
+`.github/workflows/app-store.yml` archives the app on a GitHub-hosted Mac, signs it with cloud-managed certificates and uploads it to App Store Connect. It runs on every push to `main` that changes `index.html` or `ios/`, or on demand from **Actions → App Store Connect → Run workflow**. The workflow run number becomes the build number. It needs three repository secrets from an App Store Connect API key with the Admin role (**Users and Access → Integrations → Team Keys**): `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_PRIVATE_KEY` (the contents of the `.p8` file). Builds show up under **TestFlight** once Apple finishes processing them.
+
 ## Android app
 
 Open the `android/` folder in Android Studio and press Run. Like the iOS app, it shows the game full-screen in a WebView and bundles the repo's `index.html` at build time. From the command line: `cd android && ./gradlew assembleDebug` builds `app/build/outputs/apk/debug/app-debug.apk` (Java 17+ is required; Android Studio's bundled runtime works). Minimum Android version is 8.0.
