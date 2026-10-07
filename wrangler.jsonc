@@ -5,5 +5,7 @@
   "compatibility_date": "2026-10-07",
   "assets": {
     "directory": "./"
-  }
+  },
+  // Lets Cloudflare's Git integration build a preview link for each non-main branch (npx wrangler preview).
+  "previews": {}
 }
