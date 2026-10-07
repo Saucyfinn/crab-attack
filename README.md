@@ -4,7 +4,7 @@ A small phone-friendly beach game. Use touch gestures to shoo crabs away with a 
 
 ## Play
 
-Open `index.html` in a browser. Tap **Let's play**, then swipe across approaching crabs, or swing your towel like a golf club. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. Clear all 24 rounds, across three beaches, to win.
+Open `index.html` in a browser. Tap **Let's play**, then swipe across approaching crabs, or swing your towel like a golf club. Three crabs getting through ends the game. After each short round, tap **Build & next round** to grow your sandcastle and restore its hearts. The tide never stops: after 24 designed rounds across three beaches, the beaches come round again, tougher each time. Your best round is shown on the start screen.
 
 Wet sand in round 2 makes crabs move twice as fast, and round 6 is a pop-up round where crabs burrow up at random and only accurate taps catch them. Later rounds bring bigger hordes, jumpy crabs and armoured crabs that need stronger towel tricks. Use the pause button to take a break; switching apps also pauses the game.
 
@@ -51,7 +51,7 @@ node tests/game.test.js index.html /tmp/old.html
 
 ## Stars, retries and sound
 
-Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and the total out of 72 shows on the start and build screens.
+Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and your running total shows on the start and build screens. The game never shows a last round or a maximum.
 
 If the crabs take your castle, the game says how many crabs were left. **Retry round** replays that round from the score you started it with. **Start over** returns to round 1.
 
@@ -162,6 +162,8 @@ After Sunny Bay (rounds 1–8) come two more beaches of eight rounds. Each start
 
 Each round also has a movement pattern (sway, sides, parade, dive, train, wiggle or pop-up), shared with the first beach's rounds of the same style.
 
+**The endless tide.** After round 24 the three beaches come round again as round 25 onwards, named "Beach day II", "Rock hop II" and so on (then III, IV…). Each lap adds 2 crabs to every surge, trims the gaps between surges, makes crabs a little faster and jumpier, lets hermit and twin crabs turn up on every beach (ghosts stay on Night Tide), and adds a king from the middle of each beach. Prizes come back **golden**: they hold crabs 15% longer and last for 2 more crabs per lap. The climb stops after the fourth lap (round 97 on), so the tide can go on for good: each lap's first rounds stay easy, and its two-king finale stays hard but beatable. The HUD shows only the round number, and the lock screen doesn't name a last round.
+
 From round 3, each surge is one crab bigger than the last, and every surge is slightly faster. Rounds 1–2 use only plain crabs that follow predictable paths. The build screen previews the next round's threat.
 
 **Jumpy crabs** (from round 4, up to about half the horde by round 8) sidestep at random, dash forward and stop suddenly. A puff of sand marks a dash. On wet sand, dashes are reduced so they don't stack with the water's double speed.
@@ -175,7 +177,7 @@ From round 3, each surge is one crab bigger than the last, and every surge is sl
 
 - **Hermit crab** (Rocky Point on, 20 points): every second or so it ducks into its spiral shell for about a second and stops moving. Any trick that reaches it then does nothing ("a hermit hid!"); hit it when it peeks out.
 - **Twin crab** (round 11 on, 15 points): a tap, sweep or whip clears it but splits it into two small, quick baby crabs (5 points each). A spin or power snap clears it whole.
-- **Ghost crab** (Night Tide, 20 points): a pale crab that zigzags and fades in and out. The towel passes straight through a faded ghost; it can only be hit while it shows (a little over half the time).
+- **Ghost crab** (Night Tide, every lap, 20 points): a pale crab that zigzags and fades in and out. The towel passes straight through a faded ghost; it can only be hit while it shows (a little over half the time).
 
 **Pop-up crabs** (round 6) burrow up anywhere on the far half of the beach, well away from the castle. They duck under swipes, spins and whips, so only a tap within 28 units of the crab catches one, at any distance from the cowboy. A crab left up too long (1.4 s at first, 0.8 s by the end) runs for the castle.
 

@@ -169,7 +169,7 @@ q('round=2;castle=2');ok(clearWith(2,1)==='★☆☆','clearing with a heart los
 q('round=2');ok(clearWith(3,1)==='★★☆','no hearts lost earns a second star');
 q('round=2');ok(clearWith(3,4)==='★★★','a ×4 combo earns the third star');
 q('round=2');clearWith(2,1);ok(JSON.parse(R.store.crabAttackStars)[1]===3,'best stars per round are kept, not overwritten by a worse run');
-ok(/\d+ \/ 72 ★/.test(R.els['#note'].textContent),'build screen shows the star total out of 72 (24 rounds × 3)');
+ok(/· \d+ ★$/.test(R.els['#note'].textContent)&&!/\//.test(R.els['#note'].textContent),'build screen shows the star total, with no maximum');
 q("round=3;begin();crabs=[];['sweep','snap','sweep','snap'].forEach((t,i)=>{spawn(0,'crab');Object.assign(crabs.at(-1),{x:200,y:400});clock+=.5;perform({type:t,x:200,y:400,radius:t==='snap'?43:undefined,points:[{x:140,y:400},{x:260,y:400}]})})");
 ok(q('bestChain')===4&&/combo star/.test(q('feedback')),'alternating tricks reach a ×4 combo and announce the star');
 q("round=5;begin();crabs=[];spawn(0,'king');Object.assign(crabs[0],{x:200,y:400});powerCooldown=0;perform({type:'spin',x:200,y:400,radius:125,points:[{x:200,y:400}]})");
@@ -178,20 +178,20 @@ q("begin();crabs=[];spawn(0,'crab');Object.assign(crabs[0],{x:200,y:400});perfor
 ok(q('freeze===0'),'a single small hit does not pause the game');
 ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support');
 q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
-const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/5 \/ 72 ★/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
+const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/· 5 ★$/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
 // full game: rounds 1–3 are free; in the iPhone app an in-app purchase unlocks rounds 4–8, elsewhere they point to the app
 console.log('Full game unlock');
 {const W=load(NEW),w=W.run;
 w('round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
-ok(w('state')==='between'&&/Rounds 4–24 are in the full game, in the Crab Attack iPhone app/.test(W.els['#description'].textContent),'without a store, clearing round 3 says rounds 4–24 are in the iPhone app');
+ok(w('state')==='between'&&/Keep playing in the Crab Attack iPhone app, where the tide never stops/.test(W.els['#description'].textContent)&&!/24/.test(W.els['#description'].textContent),'without a store, clearing round 3 says to keep playing in the iPhone app, without naming a last round');
 ok(W.els['#action'].textContent==='Play again from round 1'&&W.els['#alt'].hidden===true,'and offers to play again from round 1');
 w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 4');
 w('round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(W.els['#action'].textContent==='Build & next round'&&!/full game/.test(W.els['#description'].textContent),'rounds 1–2 lead on as before');
 const I=load(NEW),i=I.run;
 i("globalThis.msgs=[];globalThis.crabStore={available:true};globalThis.webkit={messageHandlers:{store:{postMessage:m=>msgs.push(m)}}}");
 i("storeChanged({unlocked:false,price:'$0.99'});round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
-ok(/Unlock them once to keep playing/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 3 offers to unlock all rounds at the store price');
+ok(/Unlock it once and keep playing: the tide never stops/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 3 offers to unlock all rounds at the store price');
 ok(I.els['#alt'].hidden===false&&I.els['#alt'].textContent==='Restore purchase','with a Restore purchase button');
 i("$('#action').onclick()");ok(i('msgs.join()')==='buy'&&i('state')==='between'&&i('round')===3&&I.els['#action'].textContent==='Unlocking…','tapping it asks the App Store to buy, without moving on');
 i("$('#action').onclick()");ok(i('msgs.length')===1,'a second tap while the purchase is open does nothing');
@@ -204,7 +204,7 @@ i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textC
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
 console.log('Beaches');
 {const B=load(NEW),b=B.run,sweep='perform({type:"sweep",x:270,y:420,points:[{x:150,y:420},{x:270,y:420}]})';
-ok(b('ROUNDS')===24&&b('roundNotes.length')===24&&b('patterns.length')===24,'24 rounds, each with a name, a note and a movement pattern');
+ok(b('DESIGNED')===24&&b('roundNotes.length')===24&&b('patterns.length')===24,'24 designed rounds, each with a name, a note and a movement pattern');
 ok(b('[1,8,9,16,17,24].map(r=>beachOf(r)).join()')==='0,0,1,1,2,2','eight rounds on each of Sunny Bay, Rocky Point and Night Tide');
 ok(b('hordePlan(9).hermit>0&&hordePlan(10).twin===0&&hordePlan(11).twin>0&&hordePlan(16).ghost===0&&hordePlan(17).ghost>0'),'hermit crabs from Rocky Point, twin crabs from round 11, ghost crabs on Night Tide');
 ok(b('[14,21].every(r=>hordePlan(r).pop)&&hordePlan(16).kings===2&&hordePlan(24).kings===2'),'each beach has a pop-up round and ends with two kings per surge');
@@ -223,7 +223,14 @@ ok(b('state')==='between'&&/Sunny Bay saved/.test(B.els['#title'].textContent)&&
 b("$('#action').onclick()");ok(b('round')===9&&b('Object.keys(layout).length')===0&&b('state')==='playing','and leads on to round 9 on a clear Rocky Point beach');
 b('surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a bucket and spade/.test(B.els['#description'].textContent),'Rocky Point has its own prizes, starting with a bucket and spade');
 b("collectPrize();$('#action').onclick()");ok(b('state')==='setup'&&b('owned().map(p=>p.name).join()')==='Bucket and spade','and its tray holds only Rocky Point prizes');
-b('round=24;castle=24;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(b('state')==='won'&&/all 24 rounds/.test(B.els['#description'].textContent),'clearing round 24 wins the game');
+b('round=24;castle=24;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(b('state')==='between'&&/Night Tide saved/.test(B.els['#title'].textContent)&&/a new beach, Sunny Bay II · Beach day II/.test(B.els['#description'].textContent),'round 24 is not the end: Night Tide saved, then back to Sunny Bay II');
+b("$('#action').onclick()");ok(b('round')===25&&b('beachOf()')===0&&b('pattern()')==='sway'&&B.els['#round'].textContent==='ROUND 25','the tide comes round again at round 25, and the HUD shows no last round');
+b('surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won the golden jandals/.test(B.els['#description'].textContent)&&b('prizeFor(25).uses')>b('prizes[0].uses')&&b('prizeFor(25).gold'),'later laps win golden prizes that hold up more crabs');
+ok(b('roundName(25)')==='Beach day II'&&b('roundName(48)')==='Last light II'&&b('roundName(49)')==='Beach day III'&&b('beachName(57)')==='Rocky Point III','later laps are named II, III and so on');
+ok(b('hordePlan(25).pack>hordePlan(1).pack&&hordePlan(49).pack>hordePlan(25).pack&&hordePlan(25).hermit>0&&hordePlan(30).pop&&hordePlan(29).kings===1'),'each lap brings bigger hordes, hermits and twins on every beach, and kings from mid-beach');
+ok(b('JSON.stringify(hordePlan(97))===JSON.stringify(hordePlan(169))&&pace(97)===pace(169)'),'the climb stops after three laps, so the tide can go on for good');
+b('round=26;castle=26;layout={0:{x:150,y:420}};begin(true);draw()');ok(b('state')==='setup'&&b('owned()[0].name')==='Golden jandals','golden prizes go in the tray and draw on the sand');
+const S2=load(NEW,{crabAttackBestRound:'31',crabAttackStars:'[3]'});ok(/Best round 31 · 3 ★/.test(S2.els['#note'].textContent),'the start screen shows your best round');
 ok(b('beachPrizes.length===3&&beachPrizes.every(l=>l.length===7)&&beachPrizes.flat().every(p=>typeof prizeArt[p.name]==="function")'),'seven prizes with artwork on every beach');
 b('beachPrizes.flat().forEach(p=>drawPrize(p,100,100));for(const r of [9,17]){round=r;begin();crabs=[];["hermit","twin","ghost","baby","king"].forEach((k,i)=>spawn(i,k));crabs[0].hidden=true;draw()}');ok(true,'every beach, new crab and new prize draws without errors');}
 
