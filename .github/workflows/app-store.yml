@@ -1,0 +1,71 @@
+# Archives the iOS app on a GitHub-hosted Mac, signs it with cloud-managed certificates and uploads it to
+# App Store Connect, so a release needs no Mac of your own. Runs on every push to main that changes the game
+# or the iOS app, or by hand from the Actions tab (Run workflow).
+#
+# Repository secrets (Settings → Secrets and variables → Actions), from an App Store Connect API key with the
+# Admin role (Users and Access → Integrations → Team Keys); Admin is needed for cloud-managed signing:
+#   ASC_KEY_ID       the key's ID
+#   ASC_ISSUER_ID    the issuer ID shown above the list of keys
+#   ASC_PRIVATE_KEY  the full contents of the downloaded AuthKey_XXXXXXXXXX.p8 file
+name: App Store Connect
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [index.html, 'ios/**', .github/workflows/app-store.yml]
+
+concurrency:
+  group: app-store
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check secrets
+        env:
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          for name in KEY_ID ISSUER_ID PRIVATE_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::Add the ASC_$name repository secret (see the top of this file)"; exit 1; fi
+          done
+          mkdir -p "$RUNNER_TEMP/asc"
+          printf '%s\n' "$PRIVATE_KEY" > "$RUNNER_TEMP/asc/AuthKey.p8"
+          xcodebuild -version
+
+      # Each upload needs a new build number; the workflow run number always goes up.
+      - name: Archive
+        env:
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild archive \
+            -project ios/CrabAttack.xcodeproj -scheme CrabAttack -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/CrabAttack.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }}
+
+      - name: Upload to App Store Connect
+        env:
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/CrabAttack.xcarchive" \
+            -exportOptionsPlist ios/ExportOptions.plist -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID"
+          echo "Uploaded build ${{ github.run_number }}. It appears in App Store Connect → TestFlight once processing finishes." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the API key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/asc"
