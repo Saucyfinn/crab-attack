@@ -97,7 +97,7 @@ r('begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,s
 
 // prizes: one per cleared round, placed before the round starts; they stay put from round to round
 console.log('Prizes');
-r('round=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a pair of jandals/.test(G.els['#description'].textContent),'clearing round 1 wins a pair of jandals');
+r('unlocked=true;round=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a pair of jandals/.test(G.els['#description'].textContent),'clearing round 1 wins a pair of jandals');
 ok(r("prizes.map(p=>p.name).join()")==='Jandals,Sun lounger,Chilly bin,Beach umbrella,Boogie board,Windbreak,Picnic hamper','then a sun lounger, a chilly bin and more, one per round');
 r("$('#action').onclick()");ok(r('state')==='setup'&&r('round')===2&&G.els['#go'].hidden===false&&G.els['#trayL'].hidden===false,'the next round opens with a setup step to place prizes');
 r('for(let i=0;i<120;i++)update(1/30)');ok(r('crabs.length')===0,'no crabs arrive until the round is started');
@@ -183,22 +183,22 @@ const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('mute
 // full game: rounds 1–3 are free; in the iPhone app an in-app purchase unlocks rounds 4–8, elsewhere they point to the app
 console.log('Full game unlock');
 {const W=load(NEW),w=W.run;
-w('round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
-ok(w('state')==='between'&&/Keep playing in the Crab Attack iPhone app, where the tide never stops/.test(W.els['#description'].textContent)&&!/24/.test(W.els['#description'].textContent),'without a store, clearing round 3 says to keep playing in the iPhone app, without naming a last round');
+w('round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
+ok(w('state')==='between'&&/Keep playing in the Crab Attack iPhone app, where the tide never stops/.test(W.els['#description'].textContent)&&!/24/.test(W.els['#description'].textContent),'without a store, clearing round 1 says to keep playing in the iPhone app, without naming a last round');
 ok(W.els['#action'].textContent==='Play again from round 1'&&W.els['#alt'].hidden===true,'and offers to play again from round 1');
-w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 4');
-w('round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(W.els['#action'].textContent==='Build & next round'&&!/full game/.test(W.els['#description'].textContent),'rounds 1–2 lead on as before');
+w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 2');
+ok(w('FREE_ROUNDS')===1,'only round 1 is free');
 const I=load(NEW),i=I.run;
 i("globalThis.msgs=[];globalThis.crabStore={available:true};globalThis.webkit={messageHandlers:{store:{postMessage:m=>msgs.push(m)}}}");
-i("storeChanged({unlocked:false,price:'$0.99'});round=3;castle=3;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
-ok(/Unlock it once and keep playing: the tide never stops/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 3 offers to unlock all rounds at the store price');
+i("storeChanged({unlocked:false,price:'$0.99'});round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
+ok(/Unlock it once and keep playing: the tide never stops/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 1 offers to unlock all rounds at the store price');
 ok(I.els['#alt'].hidden===false&&I.els['#alt'].textContent==='Restore purchase','with a Restore purchase button');
-i("$('#action').onclick()");ok(i('msgs.join()')==='buy'&&i('state')==='between'&&i('round')===3&&I.els['#action'].textContent==='Unlocking…','tapping it asks the App Store to buy, without moving on');
+i("$('#action').onclick()");ok(i('msgs.join()')==='buy'&&i('state')==='between'&&i('round')===1&&I.els['#action'].textContent==='Unlocking…','tapping it asks the App Store to buy, without moving on');
 i("$('#action').onclick()");ok(i('msgs.length')===1,'a second tap while the purchase is open does nothing');
 i("storeChanged({unlocked:false,message:'Purchase failed'})");ok(I.els['#action'].textContent==='Unlock all rounds · $0.99'&&I.els['#note'].textContent==='Purchase failed','a failed purchase says why and lets you try again');
-i("$('#alt').onclick()");ok(i('msgs.at(-1)')==='restore'&&i('round')===3,'Restore purchase asks the App Store to restore');
+i("$('#alt').onclick()");ok(i('msgs.at(-1)')==='restore'&&i('round')===1,'Restore purchase asks the App Store to restore');
 i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & next round'&&I.els['#alt'].hidden===true&&/unlocked/.test(I.els['#note'].textContent),'once unlocked the button leads on');
-i("$('#action').onclick()");ok(i('round')===4&&i('state')==='setup','to round 4');
+i("$('#action').onclick()");ok(i('round')===2&&i('state')==='setup','to round 2');
 i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
 
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
