@@ -49,6 +49,18 @@ git show <rev>:index.html > /tmp/old.html
 node tests/game.test.js index.html /tmp/old.html
 ```
 
+## Beach days: difficulty
+
+Before a run, the start screen (and the screen after a lost round) offers three beach days:
+
+| Mode | Difficulty | Hordes | Gap between surges | Crab speed | Jumpy crabs | Pop-ups stay up |
+|---|---|---|---|---|---|---|
+| 🏖️ Sunbathing | Easy | 75% | +0.6 s | 85% | half as many | 25% longer |
+| 🏐 Beach sports | Hard (default) | as designed | as designed | as designed | as designed | as designed |
+| 🛟 Lifeguard | Expert | 110% | −0.15 s | 105% | 25% more | 10% shorter |
+
+Beach sports is the game exactly as designed and tuned. The choice is remembered, and each mode keeps its own best score and best round; stars are shared. With the bots, Sunbathing's two-king finales (rounds 8 and 24) are cleared almost every time, while on Lifeguard a skilled player clears them only now and then.
+
 ## Stars, retries and sound
 
 Each round awards up to three stars: ★ for clearing it, ★ for losing no hearts, and ★ for landing a ×4 combo (four hits in a row, alternating tricks, each within two seconds). Your best stars per round are saved in the browser, and your running total shows on the start and build screens. The game never shows a last round or a maximum.
