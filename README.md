@@ -88,7 +88,7 @@ He stands guard in front of the castle, seen from behind as he faces the sea, an
 
 ## Prizes
 
-Each round you clear ends with a prize ceremony: a battered king crab (crown askew, bandaged head, black eye) limps up the beach with your prize and hands it to the cowboy, streamers pop from both bottom corners at once, and a **You won!** card shows the prize's picture and name. **Collect prize** opens the build screen; tap the beach (or press Enter) to skip ahead to the card.
+Each round you clear ends with a prize ceremony: a battered king crab (crown askew, bandaged head, black eye) limps up the beach with your prize and hands it to the cowboy, streamers pop from both bottom corners at once, and a **You won!** card shows the prize's picture and name. **Collect prize** (or Enter) opens the build screen. Taps and swipes on the beach are ignored until the card shows, so a last flick at the end of a round can't cut the handover short.
 
 Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a beach umbrella, a boogie board, a windbreak and a picnic hamper. Before each round starts, a setup step shows the tray of prizes beside the castle: drag prizes onto the open sand, drag placed ones to move them, or drag one off the sand to put it back, then press **Start round**. Prizes stay where you put them from round to round (and on retries) until you move them; **Start over** clears the beach. A crab that walks into a prize stops for a moment before climbing over, and the prize is knocked over after holding up its quota of crabs, coming back fresh next round.
 

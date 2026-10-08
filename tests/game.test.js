@@ -5,10 +5,10 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 function load(file,store={}){
   const html=fs.readFileSync(file,'utf8'),src=html.match(/<script>([\s\S]*)<\/script>/)[1];
-  const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(){},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
+  const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(n,f){(this.on??={})[n]=f},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
   const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++;return {addColorStop(){}}},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
-  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(){},requestAnimationFrame(){},Math:Object.create(Math),console};
+  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console};
   vm.createContext(sandbox);vm.runInContext(src,sandbox);
   const run=code=>vm.runInContext(code,sandbox);
   return {run,sandbox,ctxCalls,els,store};
@@ -117,6 +117,16 @@ r('for(let i=0;i<45;i++)update(1/30)');ok(r('crabs[0].y')>held+10,'then climbs o
 r('items.find(o=>o.i===1).left=1;crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:360,bx:210,startX:210,speed:60,jumpy:false});for(let i=0;i<20;i++)update(1/30)');ok(!r('items.some(o=>o.i===1)'),'a prize is knocked over after holding up its quota of crabs');
 r('begin(true)');ok(r('items.length')===2&&r('items.every(o=>o.left===o.uses)'),'knocked-over prizes are back, fresh and in place, for the next attempt');
 r("$('#alt').onclick()");ok(r('round')===1&&r('Object.keys(layout).length')===0&&r('state')==='playing','Start over clears the beach');
+
+// prize ceremony: the battered king crab always completes the handover; taps can't stop or skip it
+console.log('Prize ceremony');
+{const C=load(NEW),c=C.run,canvas=C.sandbox.document.querySelector('#game'),tap={preventDefault(){},button:0,pointerId:3,clientX:210,clientY:400,timeStamp:0};
+c('unlocked=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01);for(let i=0;i<60;i++)update(1/60)');
+const before=c('[ceremony.phase,ceremony.d,ceremony.card].join()');canvas.on.pointerdown(tap);canvas.on.pointerup(tap);
+ok(c('[ceremony.phase,ceremony.d,ceremony.card].join()')===before&&c('gesture')===null,'a tap or flick on the beach during the handover does nothing');
+C.sandbox.on.keydown({key:'Enter',repeat:false,preventDefault(){}});ok(c('!!ceremony&&!ceremony.card'),'nor does Enter before the card shows');
+c('for(let i=0;i<900&&!ceremony.card;i++)update(1/60)');ok(c('ceremony.phase')==='cheer'&&c('ceremony.card'),'the crab limps up, hands over the prize and the card shows, all on its own');
+C.sandbox.on.keydown({key:'Enter',repeat:false,preventDefault(){}});ok(c('ceremony')===null&&c('state')==='between','then Enter (or Collect prize) opens the build screen');}
 
 // golden towel: three different tricks in a row power it up for a few seconds
 console.log('Golden towel');
