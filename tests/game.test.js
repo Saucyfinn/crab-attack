@@ -234,6 +234,24 @@ const S2=load(NEW,{crabAttackBestRound:'31',crabAttackStars:'[3]'});ok(/Best rou
 ok(b('beachPrizes.length===3&&beachPrizes.every(l=>l.length===7)&&beachPrizes.flat().every(p=>typeof prizeArt[p.name]==="function")'),'seven prizes with artwork on every beach');
 b('beachPrizes.flat().forEach(p=>drawPrize(p,100,100));for(const r of [9,17]){round=r;begin();crabs=[];["hermit","twin","ghost","baby","king"].forEach((k,i)=>spawn(i,k));crabs[0].hidden=true;draw()}');ok(true,'every beach, new crab and new prize draws without errors');}
 
+// difficulty: Sunbathing (easy), Beach sports (hard, the default and the game as designed) and Lifeguard (expert)
+console.log('Difficulty modes');
+{const D=load(NEW),d=D.run;
+ok(d('modes.map(m=>m.name).join()')==='Sunbathing,Beach sports,Lifeguard'&&d('mode.name')==='Beach sports','three beach days to choose from, Beach sports by default');
+ok(d('[1,8,14,24,30].every(r=>JSON.stringify(hordePlan(r))===JSON.stringify(lapPlan(r)))'),'Beach sports plays the game exactly as designed');
+d('mode=modes[0]');ok(d('hordePlan(8).pack<lapPlan(8).pack&&hordePlan(8).interval>lapPlan(8).interval&&hordePlan(8).jumpy<lapPlan(8).jumpy&&hordePlan(6).surges<lapPlan(6).surges'),'Sunbathing brings smaller hordes, longer gaps, fewer jumpy crabs and fewer pop-ups');
+d('round=8;begin();crabs=[];Math.random=()=>.5;spawn(0,"crab");globalThis.slow=crabs[0].speed;mode=modes[2];crabs=[];spawn(0,"crab")');ok(d('crabs[0].speed>slow&&hordePlan(8).pack>lapPlan(8).pack&&hordePlan(8).interval<lapPlan(8).interval'),'Lifeguard brings faster crabs, bigger hordes and shorter gaps');
+d("mode=modes[1];$('#modes').onclick({target:{closest:()=>({dataset:{m:'2'}})}})");ok(d('mode.name')==='Lifeguard'&&D.store.crabAttackMode==='2'&&/aria-checked="true" data-m="2"/.test(D.els['#modes'].innerHTML)&&/Expert/.test(D.els['#modeInfo'].textContent),'picking a mode remembers it and describes it');
+d('score=500;round=1;health=1;begin();crabs=[];spawn(0,"crab");crabs[0].y=700;update(.01)');ok(D.store['crabAttackPhoneBest-lifeguard']==='500'&&!('crabAttackPhoneBest' in D.store),'each mode keeps its own best score');
+ok(D.els['#modes'].hidden===false,'the mode can be changed after a lost round, before starting again');
+d("state='paused';show('Beach break','','Keep playing')");ok(D.els['#modes'].hidden===true,'but not from the pause screen');
+const L=load(NEW,{crabAttackMode:'0',crabAttackPhoneBest:'900','crabAttackPhoneBest-sun':'120'});ok(L.run('mode.name')==='Sunbathing'&&L.run('best')===120,'the chosen mode and its own best score load on start');
+const st=(rd,k,m)=>{const g=[...Array(30)].map((_,i)=>playRound(NEW,rd,1000+i*7919,k,m));return g.filter(x=>x.won).length/30};
+globalThis.modeRows={sun8:st(8,false,0),sun24:st(24,false,0),life8:st(8,false,2),life24:st(24,false,2),life24k:st(24,true,2)};
+console.log(`    casual bot, round 8 / 24: Sunbathing ${(modeRows.sun8*100).toFixed(0)}% / ${(modeRows.sun24*100).toFixed(0)}%  ·  Lifeguard ${(modeRows.life8*100).toFixed(0)}% / ${(modeRows.life24*100).toFixed(0)}% (skilled ${(modeRows.life24k*100).toFixed(0)}%)`);
+ok(modeRows.sun8>=.8&&modeRows.sun24>=.6,'Sunbathing makes even the two-king finales comfortable');
+ok(modeRows.life24k>0,'a skilled lifeguard can still clear round 24');}
+
 // installable web app: manifest, icons and offline cache all line up
 console.log('Web app');
 {const root=path.join(__dirname,'..'),man=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8')),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8'),page=fs.readFileSync(NEW,'utf8');
@@ -245,8 +263,8 @@ ok(/rel="manifest" href="manifest.webmanifest"/.test(page)&&/serviceWorker\.regi
 // The bot places its prizes in a band across the beach before starting the round. Like a player, it ignores crabs it can't
 // hit yet (pop-ups still underground, hermits hiding in their shells, faded ghost crabs). Every 0.6–0.85 s (0.4–0.55 s when tapping pop-ups) it aims at the lowest crab with up to ±25 units of error: spin on a king near the castle when
 // charged, tap a pop-up crab, whip a shell crab, else a 120-wide sweep. The skilled bot also spins on dense packs. All randomness is seeded.
-function playRound(file,rd,seed,skilled=false){
-  const {run}=load(file);let s=seed;const rand=()=>(s=(s*16807)%2147483647)/2147483647;
+function playRound(file,rd,seed,skilled=false,modeIdx=1){
+  const {run}=load(file);if(modeIdx!==1)run(`mode=modes[${modeIdx}]`);let s=seed;const rand=()=>(s=(s*16807)%2147483647)/2147483647;
   run(`Math.random=()=>(globalThis.__s=(globalThis.__s*16807)%2147483647)/2147483647`);run(`globalThis.__s=${seed+1}`);
   run(`round=${rd};health=3;castle=${rd};begin(true)`);
   const hasPower=run('typeof trickPower!=="undefined"');
@@ -279,5 +297,6 @@ ok(rows[7][3]>0&&rows[7][3]<.9,'a skilled player can clear round 8, but not ever
 ok(rows[8][2]>=.8&&rows[16][2]>=.8,'each new beach opens gently for the casual bot (≥80% on rounds 9 and 17)');
 ok(rows[15][2]<rows[8][2]&&rows[23][2]<rows[16][2],'each beach ends harder than it starts');
 ok(rows[23][3]>0&&rows[23][3]<.9,'a skilled player can clear round 24, but not every time');
+ok(modeRows.life8<=rows[7][2]&&modeRows.life24<=rows[23][2]&&modeRows.sun8>rows[7][2],'Lifeguard finales are harder than Beach sports, and Sunbathing easier');
 if(OLD)ok(rows.slice(4,8).reduce((a,r)=>a+r[2],0)<rows.slice(4,8).reduce((a,r)=>a+r[1],0),'rounds 5–8 are harder than the baseline');
 console.log(`\n${pass} checks passed`);
