@@ -30,7 +30,7 @@ Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhon
 
 ### Full game unlock
 
-Rounds 1–3 are free. In the iPhone app, clearing round 3 offers **Unlock all rounds**, a one-time in-app purchase (non-consumable, product ID `com.saucyfinn.CrabAttack.fullgame`), plus **Restore purchase**. The Swift wrapper handles it with StoreKit 2 (`Store` in `CrabAttackApp.swift`): it injects `window.crabStore`, takes `buy`, `restore` and `status` messages from the page, and reports `storeChanged({unlocked, price, message})` back, showing the price in the player's currency. The App Store is the record of the purchase, so nothing is stored on the device. On the web and Android there is no store, so the end of round 3 says the full game is in the iPhone app (and links to it once `APP_STORE_URL` in `index.html` is set) and offers to play again from round 1. Pull requests that touch the game or `ios/` are compiled on a GitHub-hosted Mac by `.github/workflows/ios-build.yml`.
+Round 1 is free. In the iPhone app, clearing round 1 offers **Unlock all rounds**, a one-time in-app purchase (non-consumable, product ID `com.saucyfinn.CrabAttack.fullgame`), plus **Restore purchase**. The Swift wrapper handles it with StoreKit 2 (`Store` in `CrabAttackApp.swift`): it injects `window.crabStore`, takes `buy`, `restore` and `status` messages from the page, and reports `storeChanged({unlocked, price, message})` back, showing the price in the player's currency. The App Store is the record of the purchase, so nothing is stored on the device. On the web and Android there is no store, so the end of round 1 says the full game is in the iPhone app (and links to it once `APP_STORE_URL` in `index.html` is set) and offers to play again from round 1. Pull requests that touch the game or `ios/` are compiled on a GitHub-hosted Mac by `.github/workflows/ios-build.yml`.
 
 ## Android app
 
@@ -88,7 +88,7 @@ He stands guard in front of the castle, seen from behind as he faces the sea, an
 
 ## Prizes
 
-Each round you clear ends with a prize ceremony: a battered king crab (crown askew, bandaged head, black eye) limps up the beach with your prize and hands it to the cowboy, streamers pop from both bottom corners at once, and a **You won!** card shows the prize's picture and name. **Collect prize** opens the build screen; tap the beach (or press Enter) to skip ahead to the card.
+Each round you clear ends with a prize ceremony: a battered king crab (crown askew, bandaged head, black eye) limps up the beach with your prize and hands it to the cowboy, streamers pop from both bottom corners at once, and a **You won!** card shows the prize's picture and name. **Collect prize** (or Enter) opens the build screen. Taps and swipes on the beach are ignored until the card shows, so a last flick at the end of a round can't cut the handover short.
 
 Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a beach umbrella, a boogie board, a windbreak and a picnic hamper. Before each round starts, a setup step shows the tray of prizes beside the castle: drag prizes onto the open sand, drag placed ones to move them, or drag one off the sand to put it back, then press **Start round**. Prizes stay where you put them from round to round (and on retries) until you move them; **Start over** clears the beach. A crab that walks into a prize stops for a moment before climbing over, and the prize is knocked over after holding up its quota of crabs, coming back fresh next round.
 
@@ -140,7 +140,7 @@ Pressure builds across the game and within each round:
 | 3 Both sides | 4 | 66 | 3.0 s | shell crabs |
 | 4 Crab parade | 4 | 70 | 2.7 s | jumpy crabs |
 | 5 Diving crabs | 5 | 100 | 2.5 s | king crabs |
-| 6 Pop-up crabs | — | 34 | pops every 0.85 s, down to 0.35 s | crabs burrow up one at a time |
+| 6 Pop-up crabs | — | 34 | pops every 1 s, down to 0.45 s | crabs burrow up one at a time |
 | 7 Crab train | 6 | 141 | 2.4 s | more jumpy and shell crabs |
 | 8 Last tide | 6 | 147 | 2.4 s | two kings per surge |
 
@@ -191,6 +191,6 @@ From round 3, each surge is one crab bigger than the last, and every surge is sl
 - **Twin crab** (round 11 on, 15 points): a tap, sweep or whip clears it but splits it into two small, quick baby crabs (5 points each). A spin or power snap clears it whole.
 - **Ghost crab** (Night Tide, every lap, 20 points): a pale crab that zigzags and fades in and out. The towel passes straight through a faded ghost; it can only be hit while it shows (a little over half the time).
 
-**Pop-up crabs** (round 6) burrow up anywhere on the far half of the beach, well away from the castle. They duck under swipes, spins and whips, so only a tap within 28 units of the crab catches one, at any distance from the cowboy. A crab left up too long (1.4 s at first, 0.8 s by the end) runs for the castle.
+**Pop-up crabs** (round 6) burrow up anywhere on the far half of the beach, well away from the castle. They duck under swipes, spins and whips, so only a tap within 34 units of the crab catches one, at any distance from the cowboy. A crab left up too long (1.7 s at first, 1.1 s by the end, a little less on later beaches and laps) runs for the castle.
 
 Wet sand still doubles crab speed in round 2. Knockbacks never push crabs off the beach. After a hit, the castle has 0.9 seconds of protection so simultaneous arrivals cannot take all three hearts in one frame. Particle effects and towel trails are capped for the phone prototype.
