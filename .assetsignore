@@ -4,5 +4,6 @@
 !manifest.webmanifest
 !sw.js
 !privacy.html
+!support.html
 !icons/
 !icons/*.png
