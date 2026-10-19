@@ -32,6 +32,10 @@ Open `ios/CrabAttack.xcodeproj` in Xcode, pick an iPhone simulator or your iPhon
 
 Round 1 is free. In the iPhone app, clearing round 1 offers **Unlock all rounds**, a one-time in-app purchase (non-consumable, product ID `com.saucyfinn.CrabAttack.fullgame`), plus **Restore purchase**. The Swift wrapper handles it with StoreKit 2 (`Store` in `CrabAttackApp.swift`): it injects `window.crabStore`, takes `buy`, `restore` and `status` messages from the page, and reports `storeChanged({unlocked, price, message})` back, showing the price in the player's currency. The App Store is the record of the purchase, so nothing is stored on the device. On the web and Android there is no store, so the end of round 1 says the full game is in the iPhone app (and links to it once `APP_STORE_URL` in `index.html` is set) and offers to play again from round 1. Pull requests that touch the game or `ios/` are compiled on a GitHub-hosted Mac by `.github/workflows/ios-build.yml`.
 
+## Christmas
+
+From 1 December to 6 January (by the player's device date) the beach dresses for a Kiwi summer Christmas: Pōhutukawa Bay, Boxing Day Point and Silent Night Tide, Christmas round names, Santa hats on every crab (the king crab's replaces his crown), pōhutukawa in flower, fairy lights and a star on the sandcastle, and seven Christmas prizes on the first beach (cracker, Santa's sleigh, pressie sack, inflatable reindeer, barbie, tinsel windbreak, pavlova). Rounds, hordes and saved progress are unchanged, and it switches off by itself afterwards. To see it outside the season, add `?christmas` to the address (`?nochristmas` turns it off); `window.crabEdition` set to `'christmas'` or `'standard'` overrides both. Christmas is in version 1.1.
+
 ## Android app
 
 Open the `android/` folder in Android Studio and press Run. Like the iOS app, it shows the game full-screen in a WebView and bundles the repo's `index.html` at build time. From the command line: `cd android && ./gradlew assembleDebug` builds `app/build/outputs/apk/debug/app-debug.apk` (Java 17+ is required; Android Studio's bundled runtime works). Minimum Android version is 8.0.

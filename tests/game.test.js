@@ -3,13 +3,13 @@
 //   baseline: optional older build to compare bot survival against, e.g.
 //   git show <rev>:index.html > /tmp/old.html && node tests/game.test.js index.html /tmp/old.html
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
-function load(file,store={}){
+function load(file,store={},globals={}){
   const html=fs.readFileSync(file,'utf8'),src=html.match(/<script>([\s\S]*)<\/script>/)[1];
   const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(n,f){(this.on??={})[n]=f},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
   const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++;return {addColorStop(){}}},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
-  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console};
-  vm.createContext(sandbox);vm.runInContext(src,sandbox);
+  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),querySelectorAll:()=>[],addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console};
+  Object.assign(sandbox,{crabEdition:'standard'},globals);vm.createContext(sandbox);vm.runInContext(src,sandbox);
   const run=code=>vm.runInContext(code,sandbox);
   return {run,sandbox,ctxCalls,els,store};
 }
@@ -210,6 +210,18 @@ i("$('#alt').onclick()");ok(i('msgs.at(-1)')==='restore'&&i('round')===1,'Restor
 i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & next round'&&I.els['#alt'].hidden===true&&/unlocked/.test(I.els['#note'].textContent),'once unlocked the button leads on');
 i("$('#action').onclick()");ok(i('round')===2&&i('state')==='setup','to round 2');
 i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
+
+// Christmas update: from 1 December to 6 January, the same rounds with Christmas names, prizes and Santa hats
+console.log('Christmas');
+{const X=load(NEW,{},{crabEdition:'christmas'}),x=X.run;
+ok(x('XMAS')===true&&G.run('XMAS')===false,'the Christmas edition can be turned on, and the standard beach stays as it was');
+ok(x('[new Date(2026,11,1),new Date(2026,11,25),new Date(2027,0,6)].every(d=>christmasSeason(d))&&![new Date(2026,10,30),new Date(2027,0,7),new Date(2027,6,1)].some(d=>christmasSeason(d))'),'Christmas runs from 1 December to 6 January');
+ok(x('beachName(1)')==='Pōhutukawa Bay'&&x('beachName(9)')==='Boxing Day Point'&&x('beachName(17)')==='Silent Night Tide'&&x('roundName(1)')==='Christmas Eve'&&x('roundName(24)')==='New Year’s Eve','the beaches and rounds have Christmas names');
+ok(x('rounds.length')===G.run('rounds.length')&&JSON.stringify(x('[1,8,16,24].map(n=>hordePlan(n))'))===JSON.stringify(G.run('[1,8,16,24].map(n=>hordePlan(n))')),'with exactly the same rounds and hordes');
+ok(x('beachPrizes[0].every(p=>typeof prizeArt[p.name]==="function")&&beachPrizes[0][6].name==="Pavlova"'),'the first beach has seven Christmas prizes, each with its own art');
+ok(x('prizeFor(25).gold&&prizeFor(25).art')==='Christmas cracker','golden Christmas prizes keep their art');
+x('round=8;crabs=[{x:200,y:300,kind:"king",t:0,stun:0,hit:0},{x:100,y:300,kind:"crab",t:0,stun:0,hit:0}];draw()');ok(true,'Christmas beach, Santa hats and fairy lights draw without errors');
+const S={crabAttackPhoneBest:'99',crabAttackBestRound:'12'},Y=load(NEW,S,{crabEdition:'christmas'});ok(Y.run('best')===99&&Y.run('bestRound')===12,'and players keep their saved progress');}
 
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
 console.log('Beaches');
