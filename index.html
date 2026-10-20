@@ -100,9 +100,11 @@ function clearRound(){gesture=null;const earned=1+(health===3)+(bestChain>=4),pr
 show(prize?'Nice work!':beachName()+' saved!',report+(prize?'\n\n🎁 You won '+prize.a+'! Place it on the sand before the round starts.':'\n\n🚗 Your '+beaches[beachOf()].name+' prizes are packed in the car. On to '+beachName(round+1)+(lap(round+1)?', with tougher crabs and golden prizes to win.':', with new crabs and new prizes to win.'))+'\n\nNext up: '+next+roundName(round+1)+' · '+roundNote(round+1)+(locked()?(hasStore()?'\n\n🔒 The rest of the beach is in the full game. Unlock it once and keep playing: the tide never stops.':'\n\n🔒 Keep playing in the Crab Attack iPhone app, where the tide never stops.'):''),'Build & next round',starText(earned));$('#note').textContent='Round '+round+' · '+score+' points · '+totalStars()+' ★';reportScore();lockUI();if(prize)startCeremony(prize)}
 // Game Center (iPhone app only): the app injects window.crabGameCenter and passes what arrives here to GameKit.
 // Each round end reports the run's score to the High Score leaderboard, with the achievements it has earned (their
-// App Store Connect IDs without the com.saucyfinn.CrabAttack. prefix). The access point shows on the start screen only.
+// App Store Connect IDs without the com.saucyfinn.CrabAttack. prefix). The score IDs were named before the thresholds were
+// set, so score_500 is earned at 5,000 points: partway through Sunny Bay, late in Rocky Point, and about the end of Night Tide.
+// The access point shows on the start screen only.
 function gameCenter(message){if(!globalThis.crabGameCenter?.available)return;try{webkit.messageHandlers.gameCenter.postMessage(message)}catch{}}
-function reportScore(){gameCenter({score,achievements:['first_game',...[500,2000,5000].filter(n=>score>=n).map(n=>'score_'+n)]})}
+function reportScore(){gameCenter({score,achievements:['first_game',...[['score_500',5000],['score_2000',15000],['score_5000',25000]].filter(([,n])=>score>=n).map(([id])=>id)]})}
 function gameCenterAccess(show){if(!globalThis.crabGameCenter?.available||show===gameCenterAccess.shown)return;gameCenterAccess.shown=show;gameCenter({accessPoint:show})}
 // Full game: round 1 is free. In the iPhone app one in-app purchase unlocks the rest: the app injects
 // window.crabStore, receives 'buy', 'restore' or 'status' from storeAsk(), and reports back through storeChanged().

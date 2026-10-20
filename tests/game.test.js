@@ -218,10 +218,10 @@ ok(w('msgs.length')===0,'without the iPhone app nothing is sent to Game Center')
 const C=load(NEW),c=C.run;c("globalThis.msgs=[];globalThis.crabGameCenter={available:true};globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};ui()");
 ok(c('msgs.at(-1).accessPoint')===true,'the Game Center access point shows on the start screen');
 c("$('#action').onclick()");ok(c('state')==='playing'&&c('msgs.at(-1).accessPoint')===false,'and hides once a round starts');
-c('unlocked=true;round=2;castle=2;health=3;score=620;begin();surge=hordePlan().surges;crabs=[];update(.01)');const won=c('msgs.filter(m=>"score" in m).at(-1)');
-ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, First Pinch and the 500 achievement');
-c('state="playing";score=5400;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
-ok(lost.score===5400&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
+c('unlocked=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().surges;crabs=[];update(.01)');const won=c('msgs.filter(m=>"score" in m).at(-1)');
+ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, Crablet and Crabster (5,000 points)');
+c('state="playing";score=26000;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
+ok(lost.score===26000&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
 
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
 console.log('Beaches');
