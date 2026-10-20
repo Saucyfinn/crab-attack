@@ -230,11 +230,16 @@ b('crabs[0].t=(()=>{for(let t=0;t<4;t+=.05){crabs[0].t=t;if(!solid(crabs[0]))ret
 b('crabs[0].t=Math.PI/3.2');ok(b(sweep+';crabs[0].away'),'but sweeps it away while it shows');
 b('unlocked=true;round=8;castle=8;health=3;layout={0:{x:150,y:420}};begin();surge=hordePlan().surges;crabs=[];update(.01)');
 ok(b('state')==='between'&&/Sunny Bay saved/.test(B.els['#title'].textContent)&&!b('ceremony'),'clearing round 8 saves Sunny Bay, with no prize to collect');
-b("$('#action').onclick()");ok(b('round')===9&&b('Object.keys(layout).length')===0&&b('state')==='playing','and leads on to round 9 on a clear Rocky Point beach');
+ok(/Your Sunny Bay prizes are packed in the car/.test(B.els['#description'].textContent),'the beach-saved screen says the prizes are packed in the car');
+b("$('#action').onclick()");ok(b('round')===9&&b('state')==='intro'&&B.els['#beachIntro'].hidden===false&&B.els['#introName'].textContent==='Rocky Point'&&B.els['#introCount'].textContent==='Beach 2 of 3','a new-beach card introduces Rocky Point before round 9');
+ok(/Sunny Bay prizes are packed in the car/.test(B.els['#introPackedText'].textContent)&&(B.els['#introPacked'].innerHTML.match(/<img/g)||[]).length===7&&/Hermit/.test(B.els['#introNote'].textContent),'it shows the seven Sunny Bay prizes packed in the car and what is new on this beach');
+b('update(1);crabs.length');ok(b('state')==='intro'&&b('crabs.length')===0,'no crabs come while the card is up');
+b("$('#introGo').onclick()");ok(b('round')===9&&b('Object.keys(layout).length')===0&&b('state')==='playing'&&B.els['#beachIntro'].hidden===true,'Hit the beach starts round 9 on a clear Rocky Point beach');
 b('surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a bucket and spade/.test(B.els['#description'].textContent),'Rocky Point has its own prizes, starting with a bucket and spade');
 b("collectPrize();$('#action').onclick()");ok(b('state')==='setup'&&b('owned().map(p=>p.name).join()')==='Bucket and spade','and its tray holds only Rocky Point prizes');
 b('round=24;castle=24;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(b('state')==='between'&&/Night Tide saved/.test(B.els['#title'].textContent)&&/a new beach, Sunny Bay II · Beach day II/.test(B.els['#description'].textContent),'round 24 is not the end: Night Tide saved, then back to Sunny Bay II');
-b("$('#action').onclick()");ok(b('round')===25&&b('beachOf()')===0&&b('pattern()')==='sway'&&B.els['#round'].textContent==='ROUND 25','the tide comes round again at round 25, and the HUD shows no last round');
+b("$('#action').onclick()");ok(b('state')==='intro'&&/lap 2/.test(B.els['#introCount'].textContent)&&/golden/.test(B.els['#introNote'].textContent)&&/Night Tide prizes/.test(B.els['#introPackedText'].textContent),'back at Sunny Bay II the card mentions lap 2, golden prizes and the Night Tide prizes in the car');
+b("enterBeach()");ok(b('round')===25&&b('beachOf()')===0&&b('pattern()')==='sway'&&B.els['#round'].textContent==='ROUND 25','the tide comes round again at round 25, and the HUD shows no last round');
 b('surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won the golden jandals/.test(B.els['#description'].textContent)&&b('prizeFor(25).uses')>b('prizes[0].uses')&&b('prizeFor(25).gold'),'later laps win golden prizes that hold up more crabs');
 ok(b('roundName(25)')==='Beach day II'&&b('roundName(48)')==='Last light II'&&b('roundName(49)')==='Beach day III'&&b('beachName(57)')==='Rocky Point III','later laps are named II, III and so on');
 ok(b('hordePlan(25).pack>hordePlan(1).pack&&hordePlan(49).pack>hordePlan(25).pack&&hordePlan(25).hermit>0&&hordePlan(30).pop&&hordePlan(29).kings===1'),'each lap brings bigger hordes, hermits and twins on every beach, and kings from mid-beach');
