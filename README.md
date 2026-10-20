@@ -104,7 +104,7 @@ Each round you clear wins a prize: jandals, then a sun lounger, a chilly bin, a 
 
 Kings shove through in half the time.
 
-Each new beach starts with clear sand and an empty tray, and has its own seven prizes, won in this order:
+Each new beach starts with clear sand and an empty tray, and has its own seven prizes. Before its first round, a **New beach!** card introduces it: which beach it is (and the lap), what is new there, and the last beach's prizes packed in the car. **Hit the beach** starts the round; **Home screen** goes to the start screen, where **Continue** comes back to the card; **Start over** goes back to round 1. Each beach's prizes are won in this order:
 
 | Beach | Prizes (hold time · crabs before it falls) |
 |---|---|
