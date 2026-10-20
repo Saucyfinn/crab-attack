@@ -54,6 +54,11 @@ jobs:
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/CrabAttack.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
             CURRENT_PROJECT_VERSION=${{ github.run_number }}
+          # An unsigned app carries no entitlements, so sign it ad hoc (no certificate) with the app's entitlements;
+          # the export reads them from here and signs the app for the App Store with them (Game Center).
+          codesign --force --sign - --generate-entitlement-der \
+            --entitlements ios/CrabAttack/CrabAttack.entitlements \
+            "$RUNNER_TEMP/CrabAttack.xcarchive/Products/Applications/CrabAttack.app"
 
       - name: Upload to App Store Connect
         run: |

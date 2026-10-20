@@ -211,6 +211,18 @@ i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & ne
 i("$('#action').onclick()");ok(i('round')===2&&i('state')==='setup','to round 2');
 i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
 
+// Game Center: round ends report the score and achievements to the iPhone app; the website sends nothing
+console.log('Game Center');
+{const W=load(NEW),w=W.run;w("globalThis.msgs=[];globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};unlocked=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
+ok(w('msgs.length')===0,'without the iPhone app nothing is sent to Game Center');
+const C=load(NEW),c=C.run;c("globalThis.msgs=[];globalThis.crabGameCenter={available:true};globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};ui()");
+ok(c('msgs.at(-1).accessPoint')===true,'the Game Center access point shows on the start screen');
+c("$('#action').onclick()");ok(c('state')==='playing'&&c('msgs.at(-1).accessPoint')===false,'and hides once a round starts');
+c('unlocked=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().surges;crabs=[];update(.01)');const won=c('msgs.filter(m=>"score" in m).at(-1)');
+ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, Crablet and Crabster (5,000 points)');
+c('state="playing";score=26000;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
+ok(lost.score===26000&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
+
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
 console.log('Beaches');
 {const B=load(NEW),b=B.run,sweep='perform({type:"sweep",x:270,y:420,points:[{x:150,y:420},{x:270,y:420}]})';
