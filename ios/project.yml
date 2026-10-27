@@ -16,10 +16,23 @@ targets:
       # The web game itself, bundled straight from the repo root so the app never runs a stale copy.
       - path: ../index.html
         buildPhase: resources
+    # Merged with the generated Info.plist. Install attribution for ads: Meta's and Google's SKAdNetwork IDs, and the
+    # Worker that receives Apple's copy of each install postback (worker/index.js).
+    info:
+      path: CrabAttack/Info.plist
+      properties:
+        # xcodegen writes 1.0 and 1 otherwise, which would override the build settings above.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSAdvertisingAttributionReportEndpoint: https://crab-attack.hvrdfbj65m.workers.dev
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: v9wttpbfk9.skadnetwork # Meta
+          - SKAdNetworkIdentifier: n38lu8286q.skadnetwork # Meta
+          - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork # Google
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.saucyfinn.CrabAttack
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"

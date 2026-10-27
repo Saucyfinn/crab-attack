@@ -39,6 +39,8 @@ struct GameView: UIViewRepresentable {
         // Tell the game it can report scores and achievements to Game Center.
         config.userContentController.addUserScript(WKUserScript(source: "window.crabGameCenter={available:true}", injectionTime: .atDocumentStart, forMainFrameOnly: true))
         config.userContentController.add(context.coordinator, name: "gameCenter")
+        // Funnel events from the page (first open, round cleared, purchase) update the SKAdNetwork conversion value.
+        config.userContentController.add(context.coordinator, name: "attribution")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
@@ -73,6 +75,7 @@ struct GameView: UIViewRepresentable {
 
         func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
             if message.name == "gameCenter" { return gameCenter.handle(message.body) }
+            if message.name == "attribution" { return Attribution.handle(message.body) }
             guard message.name == "store" else { return print("CrabAttack: \(message.body)") }
             switch message.body as? String {
             case "buy": Task { await store.buy() }
@@ -173,6 +176,11 @@ final class Store {
 
     private func report(_ message: String?) {
         var state: [String: Any] = ["unlocked": unlocked, "price": product?.displayPrice ?? ""]
+        // The page reports a completed purchase to the attribution Worker with its price.
+        if let product {
+            state["value"] = NSDecimalNumber(decimal: product.price).doubleValue
+            state["currency"] = product.priceFormatStyle.currencyCode
+        }
         if let message { state["message"] = message }
         guard let data = try? JSONSerialization.data(withJSONObject: state),
               let json = String(data: data, encoding: .utf8) else { return }
@@ -237,6 +245,31 @@ final class GameCenter {
                 earned.subtract(new)
                 print("CrabAttack: couldn't report achievements: \(error.localizedDescription)")
             }
+        }
+    }
+}
+
+/// Install attribution for ads on Meta and Google: the ad networks are listed under SKAdNetworkItems in Info.plist, and
+/// Apple sends their install postbacks (with a copy to the Worker, NSAdvertisingAttributionReportEndpoint) carrying the
+/// conversion value set here. Values only rise: 1 opened, 1 + n cleared round n (up to 40), 63 bought the full game.
+/// Enter the same schema in each ad platform's SKAdNetwork settings.
+enum Attribution {
+    private static let key = "attributionConversionValue"
+
+    static func handle(_ body: Any) {
+        guard let message = body as? [String: Any], let event = message["event"] as? String else { return }
+        let value: Int
+        let coarse: SKAdNetwork.CoarseConversionValue
+        switch event {
+        case "first_open": (value, coarse) = (1, .low)
+        case "round_cleared": (value, coarse) = (min(1 + ((message["round"] as? Int) ?? 1), 40), .medium)
+        case "purchase": (value, coarse) = (63, .high)
+        default: return
+        }
+        guard value > UserDefaults.standard.integer(forKey: key) else { return }
+        UserDefaults.standard.set(value, forKey: key)
+        SKAdNetwork.updatePostbackConversionValue(value, coarseValue: coarse, lockWindow: value == 63) { error in
+            if let error { print("CrabAttack: couldn't update the conversion value: \(error.localizedDescription)") }
         }
     }
 }
