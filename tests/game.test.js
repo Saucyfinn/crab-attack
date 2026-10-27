@@ -3,12 +3,12 @@
 //   baseline: optional older build to compare bot survival against, e.g.
 //   git show <rev>:index.html > /tmp/old.html && node tests/game.test.js index.html /tmp/old.html
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
-function load(file,store={}){
+function load(file,store={},extra={}){
   const html=fs.readFileSync(file,'utf8'),src=html.match(/<script>([\s\S]*)<\/script>/)[1];
   const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(n,f){(this.on??={})[n]=f},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
   const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++;return {addColorStop(){}}},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
-  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console};
+  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console,URLSearchParams,...extra};
   vm.createContext(sandbox);vm.runInContext(src,sandbox);
   const run=code=>vm.runInContext(code,sandbox);
   return {run,sandbox,ctxCalls,els,store};
@@ -222,6 +222,23 @@ c('unlocked=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().
 ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, Crablet and Crabster (5,000 points)');
 c('state="playing";score=26000;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
 ok(lost.score===26000&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
+
+// Attribution: anonymous funnel events go to the Worker, with the ad campaign tags the player arrived with
+console.log('Attribution');
+{const sent=[],fetch=(url,o)=>{sent.push({url,...JSON.parse(o.body)});return Promise.resolve()};
+const store={},W=load(NEW,store,{fetch,location:{protocol:'https:',hostname:'crab-attack.example',search:'?utm_source=meta&utm_campaign=launch&fbclid=abc&x=1'}}),w=W.run;
+ok(sent.length===1&&sent[0].event==='first_open'&&sent[0].platform==='web'&&sent[0].url==='/api/event','the first visit sends first_open to the site\'s own /api/event');
+ok(JSON.stringify(sent[0].campaign)==='{"utm_source":"meta","utm_campaign":"launch","fbclid":"abc"}','with the UTM and click-ID tags from the link, and nothing else');
+load(NEW,store,{fetch,location:{protocol:'https:',hostname:'crab-attack.example',search:''}}).run('round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
+ok(sent.length===2&&sent[1].event==='round_cleared'&&sent[1].round===1&&sent[1].campaign.utm_source==='meta','a later visit sends no second first_open, and clearing a round keeps the campaign');
+const A=load(NEW,{},{fetch,location:{protocol:'file:',hostname:'',search:''}});ok(sent.at(-1).platform==='android'&&sent.at(-1).url===A.run('TRACK_URL'),'the Android app posts to the live site');
+const msgs=[],I=load(NEW,{},{fetch,crabStore:{available:true},webkit:{messageHandlers:{store:{postMessage(){}},attribution:{postMessage:m=>msgs.push(m)}}},location:{protocol:'file:',hostname:'',search:''}}),i=I.run;
+ok(sent.at(-1).platform==='ios'&&msgs[0].event==='first_open','the iPhone app sends first_open and passes it to SKAdNetwork');
+i("storeChanged({unlocked:false});storeAsk('restore');storeChanged({unlocked:true})");ok(sent.at(-1).event!=='purchase','restoring a purchase is not counted as a sale');
+i("storeChanged({unlocked:false});storeAsk('buy');storeChanged({unlocked:true,value:2.99,currency:'NZD'})");
+ok(sent.at(-1).event==='purchase'&&sent.at(-1).value===2.99&&sent.at(-1).currency==='NZD'&&msgs.at(-1).event==='purchase','buying the full game sends a purchase with its price');
+const R=[];load(NEW,{crabAttackStars:'[3]'},{fetch:(u,o)=>{R.push(u);return Promise.resolve()},location:{protocol:'https:',hostname:'crab-attack.example',search:''}});ok(!R.length,'players who already had the game are not counted as new');
+const L=[];load(NEW,{},{fetch:(u,o)=>{L.push(u);return Promise.resolve()},location:{protocol:'http:',hostname:'localhost',search:''}});ok(!L.length,'nothing is sent while developing on localhost');}
 
 // three beaches of eight rounds: new crabs on each, and a fresh tray of prizes
 console.log('Beaches');

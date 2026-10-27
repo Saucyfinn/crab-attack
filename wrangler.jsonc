@@ -1,11 +1,25 @@
-// Deploys the web app as a static-assets Worker. Only the files allowed in .assetsignore are uploaded.
+// Deploys the web app as static assets, with a small Worker for attribution events (worker/index.js).
+// Only the files allowed in .assetsignore are uploaded as assets.
 {
   "$schema": "https://unpkg.com/wrangler/config-schema.json",
   "name": "crab-attack",
+  "main": "worker/index.js",
   "compatibility_date": "2026-10-07",
   "assets": {
-    "directory": "./"
+    "directory": "./",
+    "binding": "ASSETS",
+    // Everything else is served straight from assets without running the Worker.
+    "run_worker_first": ["/api/*", "/.well-known/skadnetwork/*", "/.well-known/appattribution/*"]
   },
+  // Created with: npx wrangler d1 create crab-attack
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "crab-attack",
+      "database_id": "b7f72cb1-24d4-4b2e-95c5-d126efcfafaf",
+      "migrations_dir": "migrations"
+    }
+  ],
   // Lets Cloudflare's Git integration build a preview link for each non-main branch (npx wrangler preview).
   "previews": {}
 }

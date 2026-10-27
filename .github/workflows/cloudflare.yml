@@ -1,9 +1,11 @@
-# Publishes the web app to Cloudflare (https://crab-attack.hvrdfbj65m.workers.dev) as a static-assets Worker.
+# Publishes the web app to Cloudflare (https://crab-attack.hvrdfbj65m.workers.dev) as a static-assets Worker, with the
+# attribution routes in worker/index.js. New D1 migrations in migrations/ are applied before each deploy.
 # Runs on every push to main that changes the web app, or by hand from the Actions tab (Run workflow).
 # The game's tests run first, so a failing build is never deployed.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   an API token made from the "Edit Cloudflare Workers" template
+#   CLOUDFLARE_API_TOKEN   an API token made from the "Edit Cloudflare Workers" template, with Account → D1 → Edit
+#                          added so it can apply the migrations
 #                          (Cloudflare dashboard → My Profile → API Tokens → Create Token)
 #   CLOUDFLARE_ACCOUNT_ID  the Account ID shown on the Workers & Pages overview page
 name: Cloudflare
@@ -12,7 +14,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [index.html, privacy.html, support.html, manifest.webmanifest, sw.js, 'icons/**', wrangler.jsonc, .assetsignore, .github/workflows/cloudflare.yml]
+    paths: [index.html, privacy.html, support.html, manifest.webmanifest, sw.js, 'icons/**', wrangler.jsonc, .assetsignore, 'worker/**', 'migrations/**', .github/workflows/cloudflare.yml]
 
 concurrency:
   group: cloudflare
@@ -38,4 +40,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.148.0'
-          command: deploy
+          command: |
+            d1 migrations apply crab-attack --remote
+            deploy

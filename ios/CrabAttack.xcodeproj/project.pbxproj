@@ -13,6 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		44A7E5CC5176E8C8BF171FC4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6C411195F60EECC8B879F02F /* CrabAttack.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CrabAttack.entitlements; sourceTree = "<group>"; };
 		8D8FE7971B155FFBF2E4CFD1 /* CrabAttack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CrabAttack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9DAC371FA23F752A9DE67581 /* CrabAttackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrabAttackApp.swift; sourceTree = "<group>"; };
@@ -36,6 +37,7 @@
 				C846F5534C87CD4A2C0CD936 /* Assets.xcassets */,
 				6C411195F60EECC8B879F02F /* CrabAttack.entitlements */,
 				9DAC371FA23F752A9DE67581 /* CrabAttackApp.swift */,
+				44A7E5CC5176E8C8BF171FC4 /* Info.plist */,
 			);
 			path = CrabAttack;
 			sourceTree = "<group>";
@@ -210,6 +212,7 @@
 				DEVELOPMENT_TEAM = YBDN2BGLMW;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CrabAttack/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Crab Attack";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
@@ -221,7 +224,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saucyfinn.CrabAttack;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -297,6 +300,7 @@
 				DEVELOPMENT_TEAM = YBDN2BGLMW;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CrabAttack/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Crab Attack";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
@@ -308,7 +312,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saucyfinn.CrabAttack;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
