@@ -229,6 +229,24 @@ h('round=8;castle=4;layout={0:{x:100,y:400},6:{x:300,y:420}};layItems();crabs=[{
 const S={crabAttackPhoneBest:'99',crabAttackBestRound:'12'},Y=load(NEW,S,{crabEdition:'halloween'});ok(Y.run('best')===99&&Y.run('bestRound')===12,'and players keep their saved progress');
 ok(load(NEW,{},{crabEdition:undefined,location:{protocol:'https:',hostname:'x.example',search:'?halloween'}}).run('HALLOWEEN')&&!load(NEW,{},{crabEdition:undefined,location:{protocol:'https:',hostname:'x.example',search:'?nohalloween'}}).run('HALLOWEEN'),'?halloween turns it on and ?nohalloween turns it off');}
 
+// Christmas: from 1 December to 6 January, the same rounds with Christmas names, prizes and Santa hats
+console.log('Christmas');
+{const X=load(NEW,{},{crabEdition:'christmas'}),x=X.run;
+ok(x('XMAS')===true&&x('HALLOWEEN')===false&&G.run('XMAS')===false,'the Christmas edition can be turned on, and the standard beach stays as it was');
+ok(x('beachName(1)')==='Pōhutukawa Bay'&&x('beachName(9)')==='Boxing Day Point'&&x('beachName(17)')==='Silent Night Tide'&&x('roundName(1)')==='Christmas Eve'&&x('roundName(24)')==='New Year’s Eve','the beaches and rounds have Christmas names');
+ok(x('rounds.length')===G.run('rounds.length')&&JSON.stringify(x('[1,6,8,16,24].map(n=>hordePlan(n))'))===JSON.stringify(G.run('[1,6,8,16,24].map(n=>hordePlan(n))')),'with exactly the same rounds and hordes');
+ok(x('beachPrizes[0].every((p,i)=>typeof prizeArt[p.name]==="function"&&p.hold===prizes[i].hold&&p.uses===prizes[i].uses)&&beachPrizes[0][6].name==="Pavlova"'),'the first beach has seven Christmas prizes, each with its own art, holding crabs up as long as the prize it replaces');
+ok(x('prizeFor(25).gold&&prizeFor(25).art')==='Christmas cracker','golden Christmas prizes keep their art');
+x('round=8;castle=4;layout={0:{x:100,y:400},6:{x:300,y:420}};layItems();crabs=[{x:200,y:300,kind:"king",t:0,stun:0,hit:0,hurt:true},{x:100,y:300,kind:"crab",t:0,stun:0,hit:0}];draw();round=17;draw()');ok(true,'the Christmas beach, Santa hats, pōhutukawa and fairy lights draw without errors');
+const S={crabAttackPhoneBest:'99',crabAttackBestRound:'12'},Y=load(NEW,S,{crabEdition:'christmas'});ok(Y.run('best')===99&&Y.run('bestRound')===12,'and players keep their saved progress');}
+
+// Seasons: each edition turns itself on and back off by the device date, with no update needed
+console.log('Seasons');
+{const E=load(NEW).run,on=(y,m,d)=>E(`editionFor(new Date(${y},${m-1},${d},12),'')`);
+const year=[[2026,1,6,'christmas'],[2026,1,7,'standard'],[2026,7,1,'standard'],[2026,10,14,'standard'],[2026,10,15,'halloween'],[2026,10,31,'halloween'],[2026,11,1,'standard'],[2026,11,30,'standard'],[2026,12,1,'christmas'],[2026,12,25,'christmas'],[2027,1,6,'christmas'],[2027,1,7,'standard']];
+ok(year.every(([y,m,d,e])=>on(y,m,d)===e),'standard all year, Halloween 15–31 October, Christmas 1 December – 6 January, then back to standard');
+ok(E("editionFor(new Date(2026,6,1),'?christmas')")==='christmas'&&E("editionFor(new Date(2026,11,25),'?standard')")==='standard'&&E("editionFor(new Date(2026,11,25),'?nochristmas')")==='standard'&&E("editionFor(new Date(2026,9,20),'?christmas')")==='christmas','?christmas, ?halloween and ?standard pick an edition any time');}
+
 // Attribution: anonymous funnel events go to the Worker, with the ad campaign tags the player arrived with
 console.log('Attribution');
 {const sent=[],fetch=(url,o)=>{sent.push({url,...JSON.parse(o.body)});return Promise.resolve()};
