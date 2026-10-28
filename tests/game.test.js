@@ -8,7 +8,7 @@ function load(file,store={},extra={}){
   const el=()=>({textContent:'',hidden:false,classList:{add(){},remove(){}},addEventListener(n,f){(this.on??={})[n]=f},setAttribute(){},showModal(){},close(){},setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:420,height:760})});
   const ctxCalls={n:0},ctx=new Proxy({},{get:(t,k)=>k in t?t[k]:()=>{ctxCalls.n++;return {addColorStop(){}}},set:(t,k,v)=>(t[k]=v,true)});
   const els={};const canvasEl=el();canvasEl.getContext=()=>ctx;
-  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console,URLSearchParams,...extra};
+  const sandbox={document:{querySelector:s=>s==='#game'?canvasEl:(els[s]??=el()),querySelectorAll:()=>[],addEventListener(){},hidden:false},localStorage:{getItem:k=>k in store?store[k]:null,setItem:(k,v)=>{store[k]=String(v)}},addEventListener(n,f){(sandbox.on??={})[n]=f},requestAnimationFrame(){},Math:Object.create(Math),console,URLSearchParams,crabEdition:'standard',...extra};
   vm.createContext(sandbox);vm.runInContext(src,sandbox);
   const run=code=>vm.runInContext(code,sandbox);
   return {run,sandbox,ctxCalls,els,store};
@@ -222,6 +222,19 @@ c('unlocked=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().
 ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, Crablet and Crabster (5,000 points)');
 c('state="playing";score=26000;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
 ok(lost.score===26000&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
+
+// Halloween: from 15 to 31 October, the same rounds with Halloween names, prizes and witch hats
+console.log('Halloween');
+{const H=load(NEW,{},{crabEdition:'halloween'}),h=H.run;
+ok(h('HALLOWEEN')===true&&G.run('HALLOWEEN')===false,'the Halloween edition can be turned on, and the standard beach stays as it was');
+ok(h('[new Date(2026,9,15),new Date(2026,9,31,23)].every(d=>halloweenSeason(d))&&![new Date(2026,9,14),new Date(2026,10,1),new Date(2027,6,20)].some(d=>halloweenSeason(d))'),'Halloween runs from 15 to 31 October');
+ok(h('beachName(1)')==='Pumpkin Bay'&&h('beachName(9)')==='Skull Rock'&&h('beachName(17)')==='Haunted Tide'&&h('roundName(1)')==='Trick or treat'&&h('roundName(24)')==='Halloween night','the beaches and rounds have Halloween names');
+ok(h('rounds.length')===G.run('rounds.length')&&JSON.stringify(h('[1,6,8,16,24].map(n=>hordePlan(n))'))===JSON.stringify(G.run('[1,6,8,16,24].map(n=>hordePlan(n))')),'with exactly the same rounds and hordes');
+ok(h('beachPrizes[0].every((p,i)=>typeof prizeArt[p.name]==="function"&&p.w===prizes[i].w&&p.hold===prizes[i].hold&&p.uses===prizes[i].uses)'),'the first beach has seven Halloween prizes, each with its own art and the same blocking as the prize it replaces');
+ok(h('prizeFor(25).gold&&prizeFor(25).art')==='Witch’s boots','golden Halloween prizes keep their art');
+h('round=8;castle=4;layout={0:{x:100,y:400},6:{x:300,y:420}};layItems();crabs=[{x:200,y:300,kind:"king",t:0,stun:0,hit:0,hurt:true},{x:100,y:300,kind:"crab",t:0,stun:0,hit:0}];draw();round=17;draw()');ok(true,'the Halloween beach, prizes, witch hats, lanterns and bats draw without errors');
+const S={crabAttackPhoneBest:'99',crabAttackBestRound:'12'},Y=load(NEW,S,{crabEdition:'halloween'});ok(Y.run('best')===99&&Y.run('bestRound')===12,'and players keep their saved progress');
+ok(load(NEW,{},{crabEdition:undefined,location:{protocol:'https:',hostname:'x.example',search:'?halloween'}}).run('HALLOWEEN')&&!load(NEW,{},{crabEdition:undefined,location:{protocol:'https:',hostname:'x.example',search:'?nohalloween'}}).run('HALLOWEEN'),'?halloween turns it on and ?nohalloween turns it off');}
 
 // Attribution: anonymous funnel events go to the Worker, with the ad campaign tags the player arrived with
 console.log('Attribution');
