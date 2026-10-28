@@ -97,7 +97,7 @@ r('begin();crabs=[];spawn(0,"crab");Object.assign(crabs[0],{x:210,y:250,bx:210,s
 
 // prizes: one per cleared round, placed before the round starts; they stay put from round to round
 console.log('Prizes');
-r('unlocked=true;round=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a pair of jandals/.test(G.els['#description'].textContent),'clearing round 1 wins a pair of jandals');
+r('crabFullGame=true;round=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');ok(/You won a pair of jandals/.test(G.els['#description'].textContent),'clearing round 1 wins a pair of jandals');
 ok(r("prizes.map(p=>p.name).join()")==='Jandals,Sun lounger,Chilly bin,Beach umbrella,Boogie board,Windbreak,Picnic hamper','then a sun lounger, a chilly bin and more, one per round');
 r("$('#action').onclick()");ok(r('state')==='setup'&&r('round')===2&&G.els['#go'].hidden===false&&G.els['#trayL'].hidden===false,'the next round opens with a setup step to place prizes');
 r('for(let i=0;i<120;i++)update(1/30)');ok(r('crabs.length')===0,'no crabs arrive until the round is started');
@@ -121,7 +121,7 @@ r("$('#alt').onclick()");ok(r('round')===1&&r('Object.keys(layout).length')===0&
 // prize ceremony: the battered king crab always completes the handover; taps can't stop or skip it
 console.log('Prize ceremony');
 {const C=load(NEW),c=C.run,canvas=C.sandbox.document.querySelector('#game'),tap={preventDefault(){},button:0,pointerId:3,clientX:210,clientY:400,timeStamp:0};
-c('unlocked=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01);for(let i=0;i<60;i++)update(1/60)');
+c('crabFullGame=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01);for(let i=0;i<60;i++)update(1/60)');
 const before=c('[ceremony.phase,ceremony.d,ceremony.card].join()');canvas.on.pointerdown(tap);canvas.on.pointerup(tap);
 ok(c('[ceremony.phase,ceremony.d,ceremony.card].join()')===before&&c('gesture')===null,'a tap or flick on the beach during the handover does nothing');
 C.sandbox.on.keydown({key:'Enter',repeat:false,preventDefault(){}});ok(c('!!ceremony&&!ceremony.card'),'nor does Enter before the card shows');
@@ -190,35 +190,28 @@ ok(q("sfx('king');sfx('lose');true"),'sound calls are safe without audio support
 q("$('#sound').onclick()");ok(R.store.crabAttackMuted==='1'&&R.els['#sound'].textContent==='🔇','mute toggles and is remembered');
 const R2=load(NEW,{crabAttackMuted:'1',crabAttackStars:'[3,2]'});ok(R2.run('muted')&&/· 5 ★$/.test(R2.els['#note'].textContent),'saved mute setting and star total load on start');
 
-// full game: rounds 1–3 are free; in the iPhone app an in-app purchase unlocks rounds 4–8, elsewhere they point to the app
-console.log('Full game unlock');
+// full game: the paid iPhone app plays every round; on the web and Android round 1 is a free taster that points to the app
+console.log('Full game');
 {const W=load(NEW),w=W.run;
 w('round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
-ok(w('state')==='between'&&/Keep playing in the Crab Attack iPhone app, where the tide never stops/.test(W.els['#description'].textContent)&&!/24/.test(W.els['#description'].textContent),'without a store, clearing round 1 says to keep playing in the iPhone app, without naming a last round');
+ok(w('state')==='between'&&/Keep playing in the Crab Attack iPhone app, where the tide never stops/.test(W.els['#description'].textContent)&&!/24/.test(W.els['#description'].textContent),'on the web, clearing round 1 says to keep playing in the iPhone app, without naming a last round');
 ok(W.els['#action'].textContent==='Play again from round 1'&&W.els['#alt'].hidden===true,'and offers to play again from round 1');
 w("$('#action').onclick()");ok(w('round')===1&&w('state')==='playing','which restarts at round 1 instead of round 2');
 ok(w('FREE_ROUNDS')===1,'only round 1 is free');
-const I=load(NEW),i=I.run;
-i("globalThis.msgs=[];globalThis.crabStore={available:true};globalThis.webkit={messageHandlers:{store:{postMessage:m=>msgs.push(m)}}}");
-i("storeChanged({unlocked:false,price:'$0.99'});round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
-ok(/Unlock it once and keep playing: the tide never stops/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Unlock all rounds · $0.99','in the iPhone app, clearing round 1 offers to unlock all rounds at the store price');
-ok(I.els['#alt'].hidden===false&&I.els['#alt'].textContent==='Restore purchase','with a Restore purchase button');
-i("$('#action').onclick()");ok(i('msgs.join()')==='buy'&&i('state')==='between'&&i('round')===1&&I.els['#action'].textContent==='Unlocking…','tapping it asks the App Store to buy, without moving on');
-i("$('#action').onclick()");ok(i('msgs.length')===1,'a second tap while the purchase is open does nothing');
-i("storeChanged({unlocked:false,message:'Purchase failed'})");ok(I.els['#action'].textContent==='Unlock all rounds · $0.99'&&I.els['#note'].textContent==='Purchase failed','a failed purchase says why and lets you try again');
-i("$('#alt').onclick()");ok(i('msgs.at(-1)')==='restore'&&i('round')===1,'Restore purchase asks the App Store to restore');
-i("storeChanged({unlocked:true})");ok(I.els['#action'].textContent==='Build & next round'&&I.els['#alt'].hidden===true&&/unlocked/.test(I.els['#note'].textContent),'once unlocked the button leads on');
+const I=load(NEW,{},{crabFullGame:true}),i=I.run;
+i('round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
+ok(i('state')==='between'&&!/🔒/.test(I.els['#description'].textContent)&&I.els['#action'].textContent==='Build & next round'&&I.els['#alt'].hidden===true,'in the iPhone app, clearing round 1 leads straight on, with nothing to buy');
 i("$('#action').onclick()");ok(i('round')===2&&i('state')==='setup','to round 2');
-i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens get their Start over button back');}
+i("state='paused';show('Beach break','','Keep playing')");ok(I.els['#alt'].textContent==='Start over','other screens keep their Start over button');}
 
 // Game Center: round ends report the score and achievements to the iPhone app; the website sends nothing
 console.log('Game Center');
-{const W=load(NEW),w=W.run;w("globalThis.msgs=[];globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};unlocked=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
+{const W=load(NEW),w=W.run;w("globalThis.msgs=[];globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};crabFullGame=true;round=2;castle=2;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)");
 ok(w('msgs.length')===0,'without the iPhone app nothing is sent to Game Center');
 const C=load(NEW),c=C.run;c("globalThis.msgs=[];globalThis.crabGameCenter={available:true};globalThis.webkit={messageHandlers:{gameCenter:{postMessage:m=>msgs.push(m)}}};ui()");
 ok(c('msgs.at(-1).accessPoint')===true,'the Game Center access point shows on the start screen');
 c("$('#action').onclick()");ok(c('state')==='playing'&&c('msgs.at(-1).accessPoint')===false,'and hides once a round starts');
-c('unlocked=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().surges;crabs=[];update(.01)');const won=c('msgs.filter(m=>"score" in m).at(-1)');
+c('crabFullGame=true;round=2;castle=2;health=3;score=5400;begin();surge=hordePlan().surges;crabs=[];update(.01)');const won=c('msgs.filter(m=>"score" in m).at(-1)');
 ok(c('state')==='between'&&won.score===c('score')&&won.achievements.join()==='first_game,score_500','clearing a round reports the score, Crablet and Crabster (5,000 points)');
 c('state="playing";score=26000;finish()');const lost=c('msgs.filter(m=>"score" in m).at(-1)');
 ok(lost.score===26000&&lost.achievements.join()==='first_game,score_500,score_2000,score_5000','losing a round reports the run score and every score achievement reached');}
@@ -245,11 +238,8 @@ ok(JSON.stringify(sent[0].campaign)==='{"utm_source":"meta","utm_campaign":"laun
 load(NEW,store,{fetch,location:{protocol:'https:',hostname:'crab-attack.example',search:''}}).run('round=1;castle=1;health=3;begin();surge=hordePlan().surges;crabs=[];update(.01)');
 ok(sent.length===2&&sent[1].event==='round_cleared'&&sent[1].round===1&&sent[1].campaign.utm_source==='meta','a later visit sends no second first_open, and clearing a round keeps the campaign');
 const A=load(NEW,{},{fetch,location:{protocol:'file:',hostname:'',search:''}});ok(sent.at(-1).platform==='android'&&sent.at(-1).url===A.run('TRACK_URL'),'the Android app posts to the live site');
-const msgs=[],I=load(NEW,{},{fetch,crabStore:{available:true},webkit:{messageHandlers:{store:{postMessage(){}},attribution:{postMessage:m=>msgs.push(m)}}},location:{protocol:'file:',hostname:'',search:''}}),i=I.run;
+const msgs=[],I=load(NEW,{},{fetch,crabFullGame:true,webkit:{messageHandlers:{attribution:{postMessage:m=>msgs.push(m)}}},location:{protocol:'file:',hostname:'',search:''}}),i=I.run;
 ok(sent.at(-1).platform==='ios'&&msgs[0].event==='first_open','the iPhone app sends first_open and passes it to SKAdNetwork');
-i("storeChanged({unlocked:false});storeAsk('restore');storeChanged({unlocked:true})");ok(sent.at(-1).event!=='purchase','restoring a purchase is not counted as a sale');
-i("storeChanged({unlocked:false});storeAsk('buy');storeChanged({unlocked:true,value:2.99,currency:'NZD'})");
-ok(sent.at(-1).event==='purchase'&&sent.at(-1).value===2.99&&sent.at(-1).currency==='NZD'&&msgs.at(-1).event==='purchase','buying the full game sends a purchase with its price');
 const R=[];load(NEW,{crabAttackStars:'[3]'},{fetch:(u,o)=>{R.push(u);return Promise.resolve()},location:{protocol:'https:',hostname:'crab-attack.example',search:''}});ok(!R.length,'players who already had the game are not counted as new');
 const L=[];load(NEW,{},{fetch:(u,o)=>{L.push(u);return Promise.resolve()},location:{protocol:'http:',hostname:'localhost',search:''}});ok(!L.length,'nothing is sent while developing on localhost');}
 
@@ -270,7 +260,7 @@ b('crabs=[];spawn(0,"twin");Object.assign(crabs[0],{x:210,y:420,bx:210});powerCo
 b('round=17;begin();crabs=[];spawn(0,"ghost");Object.assign(crabs[0],{x:210,y:420,bx:210,phase:0})');
 b('crabs[0].t=(()=>{for(let t=0;t<4;t+=.05){crabs[0].t=t;if(!solid(crabs[0]))return t}})()');ok(!b(sweep+';crabs[0].away'),'the towel passes straight through a faded ghost crab');
 b('crabs[0].t=Math.PI/3.2');ok(b(sweep+';crabs[0].away'),'but sweeps it away while it shows');
-b('unlocked=true;round=8;castle=8;health=3;layout={0:{x:150,y:420}};begin();surge=hordePlan().surges;crabs=[];update(.01)');
+b('crabFullGame=true;round=8;castle=8;health=3;layout={0:{x:150,y:420}};begin();surge=hordePlan().surges;crabs=[];update(.01)');
 ok(b('state')==='between'&&/Sunny Bay saved/.test(B.els['#title'].textContent)&&!b('ceremony'),'clearing round 8 saves Sunny Bay, with no prize to collect');
 ok(/Your Sunny Bay prizes are packed in the car/.test(B.els['#description'].textContent),'the beach-saved screen says the prizes are packed in the car');
 b("$('#action').onclick()");ok(b('round')===9&&b('state')==='intro'&&B.els['#beachIntro'].hidden===false&&B.els['#introName'].textContent==='Rocky Point'&&B.els['#introCount'].textContent==='Beach 2 of 3','a new-beach card introduces Rocky Point before round 9');
